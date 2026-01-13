@@ -1,11 +1,43 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, dialog, shell, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { initializeDatabase, closeDatabase, getDatabasePath } from './database'
+
+/**
+ * Shows an error dialog to the user when database initialization fails.
+ */
+function showDatabaseError(error: Error): void {
+  dialog.showErrorBox(
+    'Database Error',
+    `Failed to initialize the database. The application cannot start.\n\n` +
+      `Error: ${error.message}\n\n` +
+      `Database path: ${getDatabasePath()}\n\n` +
+      `Please check that you have write permissions to the application data folder.`
+  )
+}
 
 function createWindow(): void {
+  // Get primary display dimensions for centering
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+
+  // Window dimensions
+  const windowWidth = 1200
+  const windowHeight = 800
+  const minWidth = 1024
+  const minHeight = 768
+
+  // Calculate center position
+  const x = Math.round((screenWidth - windowWidth) / 2)
+  const y = Math.round((screenHeight - windowHeight) / 2)
+
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: windowWidth,
+    height: windowHeight,
+    minWidth: minWidth,
+    minHeight: minHeight,
+    x: x,
+    y: y,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -36,7 +68,16 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.recipecalculator')
+  electronApp.setAppUserModelId('com.butchercalculator')
+
+  // Initialize database before creating windows
+  try {
+    initializeDatabase()
+  } catch (error) {
+    showDatabaseError(error instanceof Error ? error : new Error(String(error)))
+    app.quit()
+    return
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -58,4 +99,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// Close database connection when app is quitting
+app.on('before-quit', () => {
+  closeDatabase()
 })
