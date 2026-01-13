@@ -6,13 +6,14 @@ import './MaterialsPage.css'
 
 interface MaterialsPageProps {
   onCreateMaterial?: () => void
+  onEditMaterial?: (id: string) => void
 }
 
 /**
  * Materials page component for managing source materials
  * Displays a table of materials with filtering, archive toggle, and CRUD actions
  */
-export function MaterialsPage({ onCreateMaterial }: MaterialsPageProps): JSX.Element {
+export function MaterialsPage({ onCreateMaterial, onEditMaterial }: MaterialsPageProps): JSX.Element {
   const { t } = useTranslation()
   const [materials, setMaterials] = useState<Material[]>([])
   const [loading, setLoading] = useState(true)
@@ -208,8 +209,8 @@ export function MaterialsPage({ onCreateMaterial }: MaterialsPageProps): JSX.Ele
                         <button
                           className="btn-icon"
                           title={t('common.edit')}
-                          disabled
                           aria-label={t('common.edit')}
+                          onClick={() => onEditMaterial?.(material.id)}
                         >
                           <svg
                             width="16"

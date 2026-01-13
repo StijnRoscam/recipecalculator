@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
-import { getAllMaterials, createMaterial } from './materials'
-import type { CreateMaterialInput } from './materials'
+import { getAllMaterials, getMaterial, createMaterial, updateMaterial } from './materials'
+import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
 
 /**
  * Registers all IPC handlers for the application.
@@ -28,6 +28,32 @@ export function registerIpcHandlers(): void {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] materials:create failed: ${errorMessage}`)
       console.error('[IPC] Full error:', error)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('materials:get', async (_event, id: string) => {
+    console.log('[IPC] materials:get called with id:', id)
+    try {
+      const result = await getMaterial(id)
+      console.log('[IPC] materials:get succeeded:', result ? result.id : 'not found')
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] materials:get failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('materials:update', async (_event, id: string, data: UpdateMaterialInput) => {
+    console.log('[IPC] materials:update called with id:', id, 'data:', JSON.stringify(data, null, 2))
+    try {
+      const result = await updateMaterial(id, data)
+      console.log('[IPC] materials:update succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] materials:update failed: ${errorMessage}`)
       throw new Error(errorMessage)
     }
   })

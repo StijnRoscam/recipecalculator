@@ -207,6 +207,31 @@ describe('MaterialsPage', () => {
     expect(mockOnCreateMaterial).toHaveBeenCalledTimes(1)
   })
 
+  it('calls onEditMaterial with material id when Edit button is clicked', async () => {
+    const mockOnEditMaterial = vi.fn()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage
+          onCreateMaterial={mockOnCreateMaterial}
+          onEditMaterial={mockOnEditMaterial}
+        />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef')).toBeInTheDocument()
+    })
+
+    // Get the first edit button (for 'Beef' material)
+    const editButtons = screen.getAllByTitle('Edit')
+    fireEvent.click(editButtons[0])
+
+    expect(mockOnEditMaterial).toHaveBeenCalledTimes(1)
+    expect(mockOnEditMaterial).toHaveBeenCalledWith('1')
+  })
+
   it('shows Show archived checkbox unchecked by default', async () => {
     mockGetAll.mockResolvedValue([])
 
@@ -304,7 +329,7 @@ describe('MaterialsPage', () => {
     })
   })
 
-  it('has disabled action buttons (placeholders)', async () => {
+  it('has edit button enabled and other buttons disabled (placeholders)', async () => {
     mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
 
     render(
@@ -318,7 +343,9 @@ describe('MaterialsPage', () => {
       const deleteButtons = screen.getAllByTitle('Delete')
       const archiveButtons = screen.getAllByTitle('Archive')
 
-      editButtons.forEach((btn) => expect(btn).toBeDisabled())
+      // Edit buttons are now enabled
+      editButtons.forEach((btn) => expect(btn).toBeEnabled())
+      // Delete and archive buttons are still disabled (placeholders)
       deleteButtons.forEach((btn) => expect(btn).toBeDisabled())
       archiveButtons.forEach((btn) => expect(btn).toBeDisabled())
     })

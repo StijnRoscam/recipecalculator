@@ -30,9 +30,23 @@ export interface CreateMaterialInput {
 }
 
 /**
+ * Input for updating an existing material.
+ */
+export interface UpdateMaterialInput {
+  name: string
+  currentPrice: number
+  unitOfMeasure: string
+  supplier?: string | null
+  sku?: string | null
+  notes?: string | null
+}
+
+/**
  * Materials API interface exposed to the renderer process.
  */
 export interface MaterialsApi {
   getAll: (includeArchived: boolean) => Promise<Material[]>
+  get: (id: string) => Promise<Material | null>
   create: (data: CreateMaterialInput) => Promise<Material>
+  update: (id: string, data: UpdateMaterialInput) => Promise<Material>
 }

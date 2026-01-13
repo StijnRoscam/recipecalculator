@@ -82,6 +82,16 @@
         "duplicateName": "Er bestaat al een materiaal met deze naam",
         "createFailed": "Materiaal aanmaken mislukt"
       }
+    },
+    "edit": {
+      "title": "Materiaal Bewerken",
+      "success": "Materiaal succesvol bijgewerkt",
+      "errors": {
+        "notFound": "Materiaal niet gevonden",
+        "duplicateName": "Er bestaat al een materiaal met deze naam",
+        "updateFailed": "Materiaal bijwerken mislukt",
+        "loadFailed": "Materiaal laden mislukt"
+      }
     }
   }
 }

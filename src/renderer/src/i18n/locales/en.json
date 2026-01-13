@@ -82,6 +82,16 @@
         "duplicateName": "A material with this name already exists",
         "createFailed": "Failed to create material"
       }
+    },
+    "edit": {
+      "title": "Edit Material",
+      "success": "Material updated successfully",
+      "errors": {
+        "notFound": "Material not found",
+        "duplicateName": "A material with this name already exists",
+        "updateFailed": "Failed to update material",
+        "loadFailed": "Failed to load material"
+      }
     }
   }
 }

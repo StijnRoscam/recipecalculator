@@ -4,25 +4,35 @@ import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { Navigation } from './components/Navigation'
 import { MaterialsPage } from './pages/MaterialsPage'
 import { CreateMaterialPage } from './pages/CreateMaterialPage'
+import { EditMaterialPage } from './pages/EditMaterialPage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('materials')
+  const [editMaterialId, setEditMaterialId] = useState<string | null>(null)
   const { t } = useTranslation()
 
   const handleNavigate = (page: string): void => {
     setActivePage(page)
+    setEditMaterialId(null)
   }
 
   const handleCreateMaterial = (): void => {
     setActivePage('materials/new')
   }
 
-  const handleCreateMaterialSuccess = (): void => {
-    setActivePage('materials')
+  const handleEditMaterial = (id: string): void => {
+    setEditMaterialId(id)
+    setActivePage('materials/edit')
   }
 
-  const handleCreateMaterialCancel = (): void => {
+  const handleMaterialSuccess = (): void => {
     setActivePage('materials')
+    setEditMaterialId(null)
+  }
+
+  const handleMaterialCancel = (): void => {
+    setActivePage('materials')
+    setEditMaterialId(null)
   }
 
   return (
@@ -39,12 +49,22 @@ function App(): JSX.Element {
       <Navigation activePage={activePage.split('/')[0]} onNavigate={handleNavigate} />
       <main className="app-main">
         {activePage === 'materials' && (
-          <MaterialsPage onCreateMaterial={handleCreateMaterial} />
+          <MaterialsPage
+            onCreateMaterial={handleCreateMaterial}
+            onEditMaterial={handleEditMaterial}
+          />
         )}
         {activePage === 'materials/new' && (
           <CreateMaterialPage
-            onCancel={handleCreateMaterialCancel}
-            onSuccess={handleCreateMaterialSuccess}
+            onCancel={handleMaterialCancel}
+            onSuccess={handleMaterialSuccess}
+          />
+        )}
+        {activePage === 'materials/edit' && editMaterialId && (
+          <EditMaterialPage
+            materialId={editMaterialId}
+            onCancel={handleMaterialCancel}
+            onSuccess={handleMaterialSuccess}
           />
         )}
       </main>

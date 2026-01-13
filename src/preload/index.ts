@@ -1,14 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { Material, CreateMaterialInput } from '../shared/types'
+import type { Material, CreateMaterialInput, UpdateMaterialInput } from '../shared/types'
 
 // Custom APIs for renderer
 const api = {
   materials: {
     getAll: (includeArchived: boolean): Promise<Material[]> =>
       ipcRenderer.invoke('materials:getAll', includeArchived),
+    get: (id: string): Promise<Material | null> => ipcRenderer.invoke('materials:get', id),
     create: (data: CreateMaterialInput): Promise<Material> =>
-      ipcRenderer.invoke('materials:create', data)
+      ipcRenderer.invoke('materials:create', data),
+    update: (id: string, data: UpdateMaterialInput): Promise<Material> =>
+      ipcRenderer.invoke('materials:update', id, data)
   }
 }
 
