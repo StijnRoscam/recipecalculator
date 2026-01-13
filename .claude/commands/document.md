@@ -1,0 +1,1 @@
+Use the documentation-engineer to update the README file with technical updates. Use the documentation-engineer to update the UserManual.md file with instructions on how to use the program. If this does not exist, create it. Documentation should be user friendly.
