@@ -26,19 +26,31 @@ body {
 
 .app-header {
   background-color: #16213e;
-  padding: 2rem;
-  text-align: center;
+  padding: 1.5rem 2rem;
   border-bottom: 1px solid #0f3460;
 }
 
+.app-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-header-title {
+  text-align: left;
+}
+
 .app-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
   color: #e94560;
 }
 
 .app-header p {
   color: #94a3b8;
+  font-size: 0.875rem;
 }
 
 .app-main {

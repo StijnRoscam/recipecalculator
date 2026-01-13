@@ -1,0 +1,41 @@
+{
+  "app": {
+    "title": "Receptcalculator",
+    "subtitle": "Bereken eenvoudig je receptkosten"
+  },
+  "navigation": {
+    "recipes": "Recepten",
+    "materials": "Materialen",
+    "packaging": "Verpakking",
+    "settings": "Instellingen"
+  },
+  "common": {
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "create": "Aanmaken",
+    "search": "Zoeken",
+    "loading": "Laden...",
+    "noResults": "Geen resultaten gevonden",
+    "confirm": "Bevestigen",
+    "back": "Terug"
+  },
+  "language": {
+    "label": "Taal",
+    "en": "Engels",
+    "nl": "Nederlands"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "minLength": "Minimaal {{min}} tekens vereist",
+    "maxLength": "Maximaal {{max}} tekens toegestaan",
+    "invalidNumber": "Voer een geldig getal in",
+    "positiveNumber": "Voer een positief getal in"
+  },
+  "errors": {
+    "generic": "Er is iets misgegaan",
+    "notFound": "Niet gevonden",
+    "loadFailed": "Gegevens laden mislukt"
+  }
+}

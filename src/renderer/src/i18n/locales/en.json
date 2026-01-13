@@ -1,0 +1,41 @@
+{
+  "app": {
+    "title": "Recipe Calculator",
+    "subtitle": "Calculate your recipe costs easily"
+  },
+  "navigation": {
+    "recipes": "Recipes",
+    "materials": "Materials",
+    "packaging": "Packaging",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "nl": "Dutch"
+  },
+  "validation": {
+    "required": "This field is required",
+    "minLength": "Minimum {{min}} characters required",
+    "maxLength": "Maximum {{max}} characters allowed",
+    "invalidNumber": "Please enter a valid number",
+    "positiveNumber": "Please enter a positive number"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "notFound": "Not found",
+    "loadFailed": "Failed to load data"
+  }
+}
