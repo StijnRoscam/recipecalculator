@@ -5,6 +5,7 @@ import { Navigation } from './components/Navigation'
 import { MaterialsPage } from './pages/MaterialsPage'
 import { CreateMaterialPage } from './pages/CreateMaterialPage'
 import { EditMaterialPage } from './pages/EditMaterialPage'
+import { PackagingPage } from './pages/PackagingPage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('materials')
@@ -67,6 +68,7 @@ function App(): JSX.Element {
             onSuccess={handleMaterialSuccess}
           />
         )}
+        {activePage === 'packaging' && <PackagingPage />}
       </main>
     </div>
   )

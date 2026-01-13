@@ -8,6 +8,7 @@ import {
   unarchiveMaterial
 } from './materials'
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
+import { getAllPackaging } from './packaging'
 
 /**
  * Registers all IPC handlers for the application.
@@ -88,6 +89,17 @@ export function registerIpcHandlers(): void {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] materials:unarchive failed: ${errorMessage}`)
       throw new Error(errorMessage)
+    }
+  })
+
+  // Packaging handlers
+  ipcMain.handle('packaging:getAll', async (_event, includeArchived: boolean) => {
+    try {
+      return await getAllPackaging(includeArchived)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`Failed to get packaging materials: ${errorMessage}`)
+      throw new Error(`Failed to get packaging materials: ${errorMessage}`)
     }
   })
 
