@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Categories for materials and recipes
+model Category {
+  id    String @id @default(uuid())
+  name  String
+  type  String // 'material' or 'recipe'
+  color String?
+
+  // Relations
+  sourceMaterials SourceMaterial[]
+  recipes         Recipe[]
+
+  @@index([type])
+  @@map("categories")
+}
+
+// Source materials (raw ingredients)
+model SourceMaterial {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  categoryId    String?  @map("category_id")
+  currentPrice  Float    @map("current_price")
+  unitOfMeasure String   @map("unit_of_measure") // 'kg' or 'g'
+  supplier      String?
+  sku           String?
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  isArchived    Boolean  @default(false) @map("is_archived")
+
+  // Relations
+  category          Category?          @relation(fields: [categoryId], references: [id])
+  recipeIngredients RecipeIngredient[]
+  priceHistory      PriceHistory[]
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([isArchived])
+  @@map("source_materials")
+}
+
+// Recipes
+model Recipe {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  description     String?
+  categoryId      String?  @map("category_id")
+  yieldQuantity   Float    @map("yield_quantity")
+  yieldUnit       String   @map("yield_unit")
+  prepTimeMinutes Int?     @map("prep_time_minutes")
+  instructions    String?
+  profitMargin    Float?   @map("profit_margin")
+  wastePercentage Float?   @map("waste_percentage")
+  vatPercentage   Float?   @map("vat_percentage")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  isArchived      Boolean  @default(false) @map("is_archived")
+  isFavorite      Boolean  @default(false) @map("is_favorite")
+
+  // Relations
+  category        Category?          @relation(fields: [categoryId], references: [id])
+  ingredients     RecipeIngredient[]
+  recipePackaging RecipePackaging[]
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([isArchived])
+  @@index([isFavorite])
+  @@map("recipes")
+}
+
+// Recipe ingredients (junction table)
+model RecipeIngredient {
+  id         String  @id @default(uuid())
+  recipeId   String  @map("recipe_id")
+  materialId String  @map("material_id")
+  quantity   Float
+  unit       String // 'kg' or 'g'
+  sortOrder  Int     @map("sort_order")
+  notes      String?
+
+  // Relations
+  recipe   Recipe         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  material SourceMaterial @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@unique([recipeId, materialId])
+  @@index([recipeId])
+  @@index([materialId])
+  @@index([recipeId, sortOrder])
+  @@map("recipe_ingredients")
+}
+
+// Packaging materials
+model PackagingMaterial {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  unitPrice Float    @map("unit_price")
+  unitType  String   @map("unit_type") // 'piece', 'meter', 'roll', 'sheet', 'box', 'bag'
+  supplier  String?
+  sku       String?
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isArchived Boolean @default(false) @map("is_archived")
+
+  // Relations
+  recipePackaging RecipePackaging[]
+
+  @@index([name])
+  @@index([isArchived])
+  @@map("packaging_materials")
+}
+
+// Recipe packaging (junction table)
+model RecipePackaging {
+  id                  String  @id @default(uuid())
+  recipeId            String  @map("recipe_id")
+  packagingMaterialId String  @map("packaging_material_id")
+  quantity            Float
+  sortOrder           Int     @map("sort_order")
+  notes               String?
+
+  // Relations
+  recipe            Recipe            @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  packagingMaterial PackagingMaterial @relation(fields: [packagingMaterialId], references: [id], onDelete: Restrict)
+
+  @@unique([recipeId, packagingMaterialId])
+  @@index([recipeId])
+  @@index([packagingMaterialId])
+  @@index([recipeId, sortOrder])
+  @@map("recipe_packaging")
+}
+
+// Application settings
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  settingType String   @map("setting_type") // 'string', 'number', 'boolean'
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@map("settings")
+}
+
+// Price history for materials
+model PriceHistory {
+  id            String   @id @default(uuid())
+  materialId    String   @map("material_id")
+  price         Float
+  effectiveDate DateTime @map("effective_date")
+  notes         String?
+
+  // Relations
+  material SourceMaterial @relation(fields: [materialId], references: [id])
+
+  @@index([materialId])
+  @@index([effectiveDate])
+  @@index([materialId, effectiveDate(sort: Desc)])
+  @@map("price_history")
+}

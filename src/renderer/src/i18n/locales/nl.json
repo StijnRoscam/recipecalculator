@@ -37,5 +37,20 @@
     "generic": "Er is iets misgegaan",
     "notFound": "Niet gevonden",
     "loadFailed": "Gegevens laden mislukt"
+  },
+  "materials": {
+    "addMaterial": "Materiaal toevoegen",
+    "showArchived": "Gearchiveerde materialen tonen",
+    "emptyState": "Geen materialen gevonden. Voeg je eerste materiaal toe om te beginnen.",
+    "archived": "Gearchiveerd",
+    "archive": "Archiveren",
+    "unarchive": "Herstellen",
+    "table": {
+      "name": "Naam",
+      "price": "Prijs",
+      "unit": "Eenheid",
+      "supplier": "Leverancier",
+      "actions": "Acties"
+    }
   }
 }

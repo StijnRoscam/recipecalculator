@@ -37,5 +37,20 @@
     "generic": "Something went wrong",
     "notFound": "Not found",
     "loadFailed": "Failed to load data"
+  },
+  "materials": {
+    "addMaterial": "Add Material",
+    "showArchived": "Show archived materials",
+    "emptyState": "No materials found. Add your first material to get started.",
+    "archived": "Archived",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "table": {
+      "name": "Name",
+      "price": "Price",
+      "unit": "Unit",
+      "supplier": "Supplier",
+      "actions": "Actions"
+    }
   }
 }

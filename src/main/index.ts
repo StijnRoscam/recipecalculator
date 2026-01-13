@@ -1,7 +1,9 @@
 import { app, BrowserWindow, dialog, shell, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { initializeDatabase, closeDatabase, getDatabasePath } from './database'
+import { initializePrisma, closePrisma, getDatabasePath } from './database/prisma'
+import { seedDefaults } from './database/seed-prisma'
+import { registerIpcHandlers } from './ipc'
 
 /**
  * Shows an error dialog to the user when database initialization fails.
@@ -66,13 +68,15 @@ function createWindow(): void {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.butchercalculator')
 
-  // Initialize database before creating windows
+  // Initialize Prisma database before creating windows
   try {
-    initializeDatabase()
+    await initializePrisma()
+    await seedDefaults()
+    registerIpcHandlers()
   } catch (error) {
     showDatabaseError(error instanceof Error ? error : new Error(String(error)))
     app.quit()
@@ -101,7 +105,7 @@ app.on('window-all-closed', () => {
   }
 })
 
-// Close database connection when app is quitting
-app.on('before-quit', () => {
-  closeDatabase()
+// Close Prisma connection when app is quitting
+app.on('before-quit', async () => {
+  await closePrisma()
 })
