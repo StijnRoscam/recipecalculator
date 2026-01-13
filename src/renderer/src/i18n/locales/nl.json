@@ -57,6 +57,31 @@
       "unit": "Eenheid",
       "supplier": "Leverancier",
       "actions": "Acties"
+    },
+    "create": {
+      "title": "Nieuw Materiaal Aanmaken",
+      "fields": {
+        "name": "Materiaalnaam",
+        "namePlaceholder": "Voer materiaalnaam in",
+        "currentPrice": "Prijs per Eenheid",
+        "currentPricePlaceholder": "0,00",
+        "unitOfMeasure": "Meeteenheid",
+        "supplier": "Leverancier",
+        "supplierPlaceholder": "Voer leverancier in (optioneel)",
+        "sku": "SKU",
+        "skuPlaceholder": "Voer SKU in (optioneel)",
+        "notes": "Notities",
+        "notesPlaceholder": "Voer extra notities in (optioneel)"
+      },
+      "units": {
+        "kg": "Kilogram (kg)",
+        "g": "Gram (g)"
+      },
+      "success": "Materiaal succesvol aangemaakt",
+      "errors": {
+        "duplicateName": "Er bestaat al een materiaal met deze naam",
+        "createFailed": "Materiaal aanmaken mislukt"
+      }
     }
   }
 }

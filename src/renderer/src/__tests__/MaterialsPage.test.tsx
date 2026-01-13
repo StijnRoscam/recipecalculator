@@ -98,9 +98,11 @@ afterEach(() => {
 
 describe('MaterialsPage', () => {
   let testI18n: typeof i18n
+  const mockOnCreateMaterial = vi.fn()
 
   beforeEach(() => {
     testI18n = createTestI18n('en')
+    mockOnCreateMaterial.mockReset()
   })
 
   it('shows loading state initially', () => {
@@ -108,7 +110,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -120,7 +122,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -136,7 +138,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -159,7 +161,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -177,7 +179,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -186,12 +188,31 @@ describe('MaterialsPage', () => {
     })
   })
 
+  it('calls onCreateMaterial when Add Material button is clicked', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Add Material')).toBeInTheDocument()
+    })
+
+    const addButton = screen.getByText('Add Material')
+    fireEvent.click(addButton)
+
+    expect(mockOnCreateMaterial).toHaveBeenCalledTimes(1)
+  })
+
   it('shows Show archived checkbox unchecked by default', async () => {
     mockGetAll.mockResolvedValue([])
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -206,7 +227,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -220,7 +241,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -241,7 +262,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -259,7 +280,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -273,7 +294,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -288,7 +309,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -308,7 +329,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -324,7 +345,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -348,7 +369,7 @@ describe('MaterialsPage', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -364,9 +385,11 @@ describe('MaterialsPage', () => {
 
 describe('MaterialsPage search functionality', () => {
   let testI18n: typeof i18n
+  const mockOnCreateMaterial = vi.fn()
 
   beforeEach(() => {
     testI18n = createTestI18n('en')
+    mockOnCreateMaterial.mockReset()
   })
 
   it('shows search input with placeholder', async () => {
@@ -374,7 +397,7 @@ describe('MaterialsPage search functionality', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -391,7 +414,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -420,7 +443,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -448,7 +471,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -476,7 +499,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -501,7 +524,7 @@ describe('MaterialsPage search functionality', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -526,7 +549,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -571,7 +594,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -614,7 +637,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()
@@ -656,7 +679,7 @@ describe('MaterialsPage search functionality', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <MaterialsPage />
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
       </I18nextProvider>
     )
 
@@ -673,7 +696,7 @@ describe('MaterialsPage search functionality', () => {
     await act(async () => {
       render(
         <I18nextProvider i18n={testI18n}>
-          <MaterialsPage />
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
         </I18nextProvider>
       )
       await vi.runAllTimersAsync()

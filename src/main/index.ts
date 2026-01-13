@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, shell, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initializePrisma, closePrisma, getDatabasePath } from './database/prisma'
+import { ensureDatabaseReady } from './database/migrate'
 import { seedDefaults } from './database/seed-prisma'
 import { registerIpcHandlers } from './ipc'
 
@@ -72,10 +73,15 @@ app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.butchercalculator')
 
-  // Initialize Prisma database before creating windows
+  // Initialize database before creating windows
   try {
+    // Run migrations to ensure database schema is up to date
+    await ensureDatabaseReady()
+    // Initialize Prisma client
     await initializePrisma()
+    // Seed default data if needed
     await seedDefaults()
+    // Register IPC handlers
     registerIpcHandlers()
   } catch (error) {
     showDatabaseError(error instanceof Error ? error : new Error(String(error)))

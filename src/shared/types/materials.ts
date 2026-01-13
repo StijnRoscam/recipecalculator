@@ -18,8 +18,21 @@ export interface Material {
 }
 
 /**
+ * Input for creating a new material.
+ */
+export interface CreateMaterialInput {
+  name: string
+  currentPrice: number
+  unitOfMeasure: string
+  supplier?: string | null
+  sku?: string | null
+  notes?: string | null
+}
+
+/**
  * Materials API interface exposed to the renderer process.
  */
 export interface MaterialsApi {
   getAll: (includeArchived: boolean) => Promise<Material[]>
+  create: (data: CreateMaterialInput) => Promise<Material>
 }

@@ -4,11 +4,15 @@ import type { Material } from '../../../shared/types'
 import { useDebounce } from '../hooks/useDebounce'
 import './MaterialsPage.css'
 
+interface MaterialsPageProps {
+  onCreateMaterial?: () => void
+}
+
 /**
  * Materials page component for managing source materials
  * Displays a table of materials with filtering, archive toggle, and CRUD actions
  */
-export function MaterialsPage(): JSX.Element {
+export function MaterialsPage({ onCreateMaterial }: MaterialsPageProps): JSX.Element {
   const { t } = useTranslation()
   const [materials, setMaterials] = useState<Material[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,7 +102,7 @@ export function MaterialsPage(): JSX.Element {
           <h2 className="page-title">{t('navigation.materials')}</h2>
         </div>
         <div className="page-header-right">
-          <button className="btn-primary" disabled>
+          <button className="btn-primary" onClick={onCreateMaterial}>
             {t('materials.addMaterial')}
           </button>
         </div>

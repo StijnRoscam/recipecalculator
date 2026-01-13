@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { Navigation } from './components/Navigation'
 import { MaterialsPage } from './pages/MaterialsPage'
+import { CreateMaterialPage } from './pages/CreateMaterialPage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('materials')
@@ -10,6 +11,18 @@ function App(): JSX.Element {
 
   const handleNavigate = (page: string): void => {
     setActivePage(page)
+  }
+
+  const handleCreateMaterial = (): void => {
+    setActivePage('materials/new')
+  }
+
+  const handleCreateMaterialSuccess = (): void => {
+    setActivePage('materials')
+  }
+
+  const handleCreateMaterialCancel = (): void => {
+    setActivePage('materials')
   }
 
   return (
@@ -23,9 +36,17 @@ function App(): JSX.Element {
           <LanguageSwitcher />
         </div>
       </header>
-      <Navigation activePage={activePage} onNavigate={handleNavigate} />
+      <Navigation activePage={activePage.split('/')[0]} onNavigate={handleNavigate} />
       <main className="app-main">
-        {activePage === 'materials' && <MaterialsPage />}
+        {activePage === 'materials' && (
+          <MaterialsPage onCreateMaterial={handleCreateMaterial} />
+        )}
+        {activePage === 'materials/new' && (
+          <CreateMaterialPage
+            onCancel={handleCreateMaterialCancel}
+            onSuccess={handleCreateMaterialSuccess}
+          />
+        )}
       </main>
     </div>
   )
