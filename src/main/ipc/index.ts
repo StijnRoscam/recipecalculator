@@ -1,5 +1,12 @@
 import { ipcMain } from 'electron'
-import { getAllMaterials, getMaterial, createMaterial, updateMaterial } from './materials'
+import {
+  getAllMaterials,
+  getMaterial,
+  createMaterial,
+  updateMaterial,
+  archiveMaterial,
+  unarchiveMaterial
+} from './materials'
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
 
 /**
@@ -54,6 +61,32 @@ export function registerIpcHandlers(): void {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] materials:update failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('materials:archive', async (_event, id: string) => {
+    console.log('[IPC] materials:archive called with id:', id)
+    try {
+      const result = await archiveMaterial(id)
+      console.log('[IPC] materials:archive succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] materials:archive failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('materials:unarchive', async (_event, id: string) => {
+    console.log('[IPC] materials:unarchive called with id:', id)
+    try {
+      const result = await unarchiveMaterial(id)
+      console.log('[IPC] materials:unarchive succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] materials:unarchive failed: ${errorMessage}`)
       throw new Error(errorMessage)
     }
   })

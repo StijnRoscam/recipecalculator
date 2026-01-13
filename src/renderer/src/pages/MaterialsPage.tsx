@@ -20,6 +20,8 @@ export function MaterialsPage({ onCreateMaterial, onEditMaterial }: MaterialsPag
   const [error, setError] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   useEffect(() => {
@@ -91,6 +93,44 @@ export function MaterialsPage({ onCreateMaterial, onEditMaterial }: MaterialsPag
     setSearchTerm('')
   }
 
+  const handleArchive = async (id: string): Promise<void> => {
+    setArchivingId(id)
+    setError(null)
+    try {
+      await window.api.materials.archive(id)
+      // Refresh the materials list
+      const data = await window.api.materials.getAll(showArchived)
+      setMaterials(data)
+      setSuccessMessage(t('materials.archiveSuccess'))
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      console.error('Failed to archive material:', err)
+      setError(t('materials.archiveError'))
+    } finally {
+      setArchivingId(null)
+    }
+  }
+
+  const handleUnarchive = async (id: string): Promise<void> => {
+    setArchivingId(id)
+    setError(null)
+    try {
+      await window.api.materials.unarchive(id)
+      // Refresh the materials list
+      const data = await window.api.materials.getAll(showArchived)
+      setMaterials(data)
+      setSuccessMessage(t('materials.unarchiveSuccess'))
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      console.error('Failed to unarchive material:', err)
+      setError(t('materials.unarchiveError'))
+    } finally {
+      setArchivingId(null)
+    }
+  }
+
   // Check if we're showing "no search results" vs "empty state"
   const hasSearchTerm = debouncedSearchTerm.length > 0
   const hasNoSearchResults = hasSearchTerm && filteredMaterials.length === 0
@@ -108,6 +148,12 @@ export function MaterialsPage({ onCreateMaterial, onEditMaterial }: MaterialsPag
           </button>
         </div>
       </div>
+
+      {successMessage && (
+        <div className="success-message" role="status">
+          {successMessage}
+        </div>
+      )}
 
       <div className="page-controls">
         <div className="search-container">
@@ -235,11 +281,16 @@ export function MaterialsPage({ onCreateMaterial, onEditMaterial }: MaterialsPag
                               ? t('materials.unarchive')
                               : t('materials.archive')
                           }
-                          disabled
+                          disabled={archivingId === material.id}
                           aria-label={
                             material.isArchived
                               ? t('materials.unarchive')
                               : t('materials.archive')
+                          }
+                          onClick={() =>
+                            material.isArchived
+                              ? handleUnarchive(material.id)
+                              : handleArchive(material.id)
                           }
                         >
                           <svg

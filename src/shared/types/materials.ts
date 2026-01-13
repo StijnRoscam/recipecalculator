@@ -49,4 +49,6 @@ export interface MaterialsApi {
   get: (id: string) => Promise<Material | null>
   create: (data: CreateMaterialInput) => Promise<Material>
   update: (id: string, data: UpdateMaterialInput) => Promise<Material>
+  archive: (id: string) => Promise<Material>
+  unarchive: (id: string) => Promise<Material>
 }

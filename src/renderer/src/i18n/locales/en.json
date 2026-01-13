@@ -46,6 +46,10 @@
     "archived": "Archived",
     "archive": "Archive",
     "unarchive": "Unarchive",
+    "archiveSuccess": "Material archived successfully",
+    "unarchiveSuccess": "Material unarchived successfully",
+    "archiveError": "Failed to archive material",
+    "unarchiveError": "Failed to unarchive material",
     "search": {
       "placeholder": "Search materials...",
       "noResults": "No materials match your search",
