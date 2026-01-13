@@ -206,3 +206,93 @@ export async function updateMaterial(id: string, data: UpdateMaterialInput): Pro
   console.log('[updateMaterial] Material updated successfully:', material.id)
   return material
 }
+
+/**
+ * Archives a material by setting isArchived to true.
+ *
+ * @param id - The material ID to archive
+ * @returns The archived material
+ * @throws Error if the material is not found
+ */
+export async function archiveMaterial(id: string): Promise<Material> {
+  console.log('[archiveMaterial] Called with id:', id)
+
+  const prisma = getPrisma()
+
+  // Check if material exists
+  const existingMaterial = await prisma.sourceMaterial.findUnique({
+    where: { id },
+    select: { id: true }
+  })
+
+  if (!existingMaterial) {
+    console.log('[archiveMaterial] Material not found:', id)
+    throw new Error('NOT_FOUND')
+  }
+
+  const material = await prisma.sourceMaterial.update({
+    where: { id },
+    data: { isArchived: true },
+    select: {
+      id: true,
+      name: true,
+      categoryId: true,
+      currentPrice: true,
+      unitOfMeasure: true,
+      supplier: true,
+      sku: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      isArchived: true
+    }
+  })
+
+  console.log('[archiveMaterial] Material archived successfully:', material.id)
+  return material
+}
+
+/**
+ * Unarchives a material by setting isArchived to false.
+ *
+ * @param id - The material ID to unarchive
+ * @returns The unarchived material
+ * @throws Error if the material is not found
+ */
+export async function unarchiveMaterial(id: string): Promise<Material> {
+  console.log('[unarchiveMaterial] Called with id:', id)
+
+  const prisma = getPrisma()
+
+  // Check if material exists
+  const existingMaterial = await prisma.sourceMaterial.findUnique({
+    where: { id },
+    select: { id: true }
+  })
+
+  if (!existingMaterial) {
+    console.log('[unarchiveMaterial] Material not found:', id)
+    throw new Error('NOT_FOUND')
+  }
+
+  const material = await prisma.sourceMaterial.update({
+    where: { id },
+    data: { isArchived: false },
+    select: {
+      id: true,
+      name: true,
+      categoryId: true,
+      currentPrice: true,
+      unitOfMeasure: true,
+      supplier: true,
+      sku: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      isArchived: true
+    }
+  })
+
+  console.log('[unarchiveMaterial] Material unarchived successfully:', material.id)
+  return material
+}

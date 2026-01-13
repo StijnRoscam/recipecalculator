@@ -75,16 +75,22 @@ const mockMaterials: Material[] = [
 
 // Setup window.api mock
 const mockGetAll = vi.fn()
+const mockArchive = vi.fn()
+const mockUnarchive = vi.fn()
 
 beforeEach(() => {
   // Reset mock before each test
   mockGetAll.mockReset()
+  mockArchive.mockReset()
+  mockUnarchive.mockReset()
 
   // Setup window.api mock
   Object.defineProperty(window, 'api', {
     value: {
       materials: {
-        getAll: mockGetAll
+        getAll: mockGetAll,
+        archive: mockArchive,
+        unarchive: mockUnarchive
       }
     },
     writable: true,
@@ -329,7 +335,7 @@ describe('MaterialsPage', () => {
     })
   })
 
-  it('has edit button enabled and other buttons disabled (placeholders)', async () => {
+  it('has edit and archive buttons enabled and delete buttons disabled', async () => {
     mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
 
     render(
@@ -343,11 +349,12 @@ describe('MaterialsPage', () => {
       const deleteButtons = screen.getAllByTitle('Delete')
       const archiveButtons = screen.getAllByTitle('Archive')
 
-      // Edit buttons are now enabled
+      // Edit buttons are enabled
       editButtons.forEach((btn) => expect(btn).toBeEnabled())
-      // Delete and archive buttons are still disabled (placeholders)
+      // Archive buttons are enabled
+      archiveButtons.forEach((btn) => expect(btn).toBeEnabled())
+      // Delete buttons are still disabled (placeholders)
       deleteButtons.forEach((btn) => expect(btn).toBeDisabled())
-      archiveButtons.forEach((btn) => expect(btn).toBeDisabled())
     })
   })
 
@@ -746,6 +753,367 @@ describe('MaterialsPage search functionality', () => {
   })
 })
 
+describe('MaterialsPage archive functionality', () => {
+  let testI18n: typeof i18n
+  const mockOnCreateMaterial = vi.fn()
+
+  beforeEach(() => {
+    testI18n = createTestI18n('en')
+    mockOnCreateMaterial.mockReset()
+  })
+
+  it('calls archive API when archive button is clicked', async () => {
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    mockGetAll.mockResolvedValue(activeMaterials)
+    mockArchive.mockResolvedValue({ ...activeMaterials[0], isArchived: true })
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef')).toBeInTheDocument()
+    })
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+    fireEvent.click(archiveButtons[0])
+
+    await waitFor(() => {
+      expect(mockArchive).toHaveBeenCalledWith('1')
+    })
+  })
+
+  it('shows success message after archiving', async () => {
+    vi.useFakeTimers()
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    // First call returns active materials, second call after archive returns remaining
+    mockGetAll
+      .mockResolvedValueOnce(activeMaterials)
+      .mockResolvedValueOnce([activeMaterials[1]])
+    mockArchive.mockResolvedValue({ ...activeMaterials[0], isArchived: true })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+
+    await act(async () => {
+      fireEvent.click(archiveButtons[0])
+      // Only advance enough to complete the async operations, not clear the 3s timeout
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.getByText('Material archived successfully')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('refreshes materials list after archiving', async () => {
+    vi.useFakeTimers()
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    mockGetAll
+      .mockResolvedValueOnce(activeMaterials)
+      .mockResolvedValueOnce([activeMaterials[1]]) // After archive, only one material left
+    mockArchive.mockResolvedValue({ ...activeMaterials[0], isArchived: true })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+
+    await act(async () => {
+      fireEvent.click(archiveButtons[0])
+      await vi.runAllTimersAsync()
+    })
+
+    expect(mockGetAll).toHaveBeenCalledTimes(2)
+
+    vi.useRealTimers()
+  })
+
+  it('calls unarchive API when unarchive button is clicked on archived material', async () => {
+    vi.useFakeTimers()
+    // First call returns materials without archived, second with archived, third after unarchive
+    mockGetAll
+      .mockResolvedValueOnce(mockMaterials.filter((m) => !m.isArchived))
+      .mockResolvedValueOnce(mockMaterials)
+      .mockResolvedValueOnce(mockMaterials.map(m => m.id === '3' ? { ...m, isArchived: false } : m))
+    mockUnarchive.mockResolvedValue({ ...mockMaterials[2], isArchived: false })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    // Check the show archived checkbox to see archived materials
+    const checkbox = screen.getByRole('checkbox')
+
+    await act(async () => {
+      fireEvent.click(checkbox)
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Archived Material')).toBeInTheDocument()
+
+    // Find the unarchive button for the archived material
+    const unarchiveButton = screen.getByTitle('Unarchive')
+
+    await act(async () => {
+      fireEvent.click(unarchiveButton)
+      await vi.runAllTimersAsync()
+    })
+
+    expect(mockUnarchive).toHaveBeenCalledWith('3')
+
+    vi.useRealTimers()
+  })
+
+  it('shows success message after unarchiving', async () => {
+    vi.useFakeTimers()
+    // First call returns materials without archived, second with archived, third after unarchive
+    mockGetAll
+      .mockResolvedValueOnce(mockMaterials.filter((m) => !m.isArchived))
+      .mockResolvedValueOnce(mockMaterials)
+      .mockResolvedValueOnce(mockMaterials.map(m => m.id === '3' ? { ...m, isArchived: false } : m))
+    mockUnarchive.mockResolvedValue({ ...mockMaterials[2], isArchived: false })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    // Check the show archived checkbox to see archived materials
+    const checkbox = screen.getByRole('checkbox')
+
+    await act(async () => {
+      fireEvent.click(checkbox)
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Archived Material')).toBeInTheDocument()
+
+    const unarchiveButton = screen.getByTitle('Unarchive')
+
+    await act(async () => {
+      fireEvent.click(unarchiveButton)
+      // Only advance enough to complete the async operations, not clear the 3s timeout
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.getByText('Material unarchived successfully')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('shows error message when archive fails', async () => {
+    vi.useFakeTimers()
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    mockGetAll.mockResolvedValue(activeMaterials)
+    mockArchive.mockRejectedValue(new Error('Archive failed'))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+
+    await act(async () => {
+      fireEvent.click(archiveButtons[0])
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Failed to archive material')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('shows error message when unarchive fails', async () => {
+    vi.useFakeTimers()
+    // First call returns materials without archived, second with archived
+    mockGetAll
+      .mockResolvedValueOnce(mockMaterials.filter((m) => !m.isArchived))
+      .mockResolvedValueOnce(mockMaterials)
+    mockUnarchive.mockRejectedValue(new Error('Unarchive failed'))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    // Check the show archived checkbox to see archived materials
+    const checkbox = screen.getByRole('checkbox')
+
+    await act(async () => {
+      fireEvent.click(checkbox)
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Archived Material')).toBeInTheDocument()
+
+    const unarchiveButton = screen.getByTitle('Unarchive')
+
+    await act(async () => {
+      fireEvent.click(unarchiveButton)
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Failed to unarchive material')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('disables archive button while archiving is in progress', async () => {
+    vi.useFakeTimers()
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    mockGetAll.mockResolvedValue(activeMaterials)
+    // Create a promise that we can control when it resolves
+    let resolveArchive: (value: Material) => void
+    mockArchive.mockImplementation(() => new Promise((resolve) => {
+      resolveArchive = resolve
+    }))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+    const firstArchiveButton = archiveButtons[0]
+
+    await act(async () => {
+      fireEvent.click(firstArchiveButton)
+    })
+
+    // The button for the material being archived should be disabled
+    expect(firstArchiveButton).toBeDisabled()
+
+    // Resolve the archive promise
+    await act(async () => {
+      resolveArchive({ ...activeMaterials[0], isArchived: true })
+      await vi.runAllTimersAsync()
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('success message disappears after 3 seconds', async () => {
+    vi.useFakeTimers()
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    // First call returns active materials, second call after archive returns remaining
+    mockGetAll
+      .mockResolvedValueOnce(activeMaterials)
+      .mockResolvedValueOnce([activeMaterials[1]])
+    mockArchive.mockResolvedValue({ ...activeMaterials[0], isArchived: true })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archive')
+
+    await act(async () => {
+      fireEvent.click(archiveButtons[0])
+      // Advance enough for API to complete but not for the 3s timeout
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.getByText('Material archived successfully')).toBeInTheDocument()
+
+    // Advance time by 3 seconds to clear the message
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000)
+    })
+
+    expect(screen.queryByText('Material archived successfully')).not.toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('renders archive success message in Dutch', async () => {
+    vi.useFakeTimers()
+    testI18n = createTestI18n('nl')
+    const activeMaterials = mockMaterials.filter((m) => !m.isArchived)
+    // First call returns active materials, second call after archive returns remaining
+    mockGetAll
+      .mockResolvedValueOnce(activeMaterials)
+      .mockResolvedValueOnce([activeMaterials[1]])
+    mockArchive.mockResolvedValue({ ...activeMaterials[0], isArchived: true })
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage onCreateMaterial={mockOnCreateMaterial} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const archiveButtons = screen.getAllByTitle('Archiveren')
+
+    await act(async () => {
+      fireEvent.click(archiveButtons[0])
+      // Advance enough for API to complete but not for the 3s timeout
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.getByText('Materiaal succesvol gearchiveerd')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+})
+
 describe('MaterialsPage translations', () => {
   it('has all required English translation keys for materials', () => {
     const testI18n = createTestI18n('en')
@@ -766,6 +1134,10 @@ describe('MaterialsPage translations', () => {
     expect(testI18n.t('materials.search.placeholder')).toBe('Search materials...')
     expect(testI18n.t('materials.search.noResults')).toBe('No materials match your search')
     expect(testI18n.t('materials.search.clear')).toBe('Clear search')
+    expect(testI18n.t('materials.archiveSuccess')).toBe('Material archived successfully')
+    expect(testI18n.t('materials.unarchiveSuccess')).toBe('Material unarchived successfully')
+    expect(testI18n.t('materials.archiveError')).toBe('Failed to archive material')
+    expect(testI18n.t('materials.unarchiveError')).toBe('Failed to unarchive material')
   })
 
   it('has all required Dutch translation keys for materials', () => {
@@ -789,5 +1161,9 @@ describe('MaterialsPage translations', () => {
       'Geen materialen gevonden voor uw zoekopdracht'
     )
     expect(testI18n.t('materials.search.clear')).toBe('Zoekopdracht wissen')
+    expect(testI18n.t('materials.archiveSuccess')).toBe('Materiaal succesvol gearchiveerd')
+    expect(testI18n.t('materials.unarchiveSuccess')).toBe('Materiaal succesvol hersteld')
+    expect(testI18n.t('materials.archiveError')).toBe('Materiaal archiveren mislukt')
+    expect(testI18n.t('materials.unarchiveError')).toBe('Materiaal herstellen mislukt')
   })
 })

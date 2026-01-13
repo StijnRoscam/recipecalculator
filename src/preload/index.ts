@@ -11,7 +11,9 @@ const api = {
     create: (data: CreateMaterialInput): Promise<Material> =>
       ipcRenderer.invoke('materials:create', data),
     update: (id: string, data: UpdateMaterialInput): Promise<Material> =>
-      ipcRenderer.invoke('materials:update', id, data)
+      ipcRenderer.invoke('materials:update', id, data),
+    archive: (id: string): Promise<Material> => ipcRenderer.invoke('materials:archive', id),
+    unarchive: (id: string): Promise<Material> => ipcRenderer.invoke('materials:unarchive', id)
   }
 }
 

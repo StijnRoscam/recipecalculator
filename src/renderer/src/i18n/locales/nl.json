@@ -46,6 +46,10 @@
     "archived": "Gearchiveerd",
     "archive": "Archiveren",
     "unarchive": "Herstellen",
+    "archiveSuccess": "Materiaal succesvol gearchiveerd",
+    "unarchiveSuccess": "Materiaal succesvol hersteld",
+    "archiveError": "Materiaal archiveren mislukt",
+    "unarchiveError": "Materiaal herstellen mislukt",
     "search": {
       "placeholder": "Materialen zoeken...",
       "noResults": "Geen materialen gevonden voor uw zoekopdracht",
