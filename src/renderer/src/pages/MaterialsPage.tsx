@@ -11,23 +11,39 @@ export function MaterialsPage(): JSX.Element {
   const { t } = useTranslation()
   const [materials, setMaterials] = useState<Material[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
 
   useEffect(() => {
     const fetchMaterials = async (): Promise<void> => {
       setLoading(true)
+      setError(null)
       try {
         const data = await window.api.materials.getAll(showArchived)
         setMaterials(data)
-      } catch (error) {
-        console.error('Failed to fetch materials:', error)
+      } catch (err) {
+        console.error('Failed to fetch materials:', err)
+        setError(t('errors.loadFailed'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchMaterials()
-  }, [showArchived])
+  }, [showArchived, t])
+
+  const handleRetry = (): void => {
+    setError(null)
+    setLoading(true)
+    window.api.materials
+      .getAll(showArchived)
+      .then(setMaterials)
+      .catch((err) => {
+        console.error('Failed to fetch materials:', err)
+        setError(t('errors.loadFailed'))
+      })
+      .finally(() => setLoading(false))
+  }
 
   const formatPrice = (price: number): string => {
     return `€${price.toFixed(2)}`
@@ -66,6 +82,13 @@ export function MaterialsPage(): JSX.Element {
         {loading ? (
           <div className="loading-state">
             <p>{t('common.loading')}</p>
+          </div>
+        ) : error ? (
+          <div className="error-state">
+            <p>{error}</p>
+            <button className="btn-secondary" onClick={handleRetry}>
+              {t('common.retry')}
+            </button>
           </div>
         ) : materials.length === 0 ? (
           <div className="empty-state">

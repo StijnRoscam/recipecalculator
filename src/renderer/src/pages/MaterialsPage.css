@@ -91,16 +91,48 @@
 }
 
 .loading-state,
-.empty-state {
+.empty-state,
+.error-state {
   padding: 4rem 2rem;
   text-align: center;
   color: #94a3b8;
 }
 
 .loading-state p,
-.empty-state p {
+.empty-state p,
+.error-state p {
   font-size: 1rem;
   margin: 0;
+}
+
+.error-state {
+  color: #ef4444;
+}
+
+.error-state p {
+  margin-bottom: 1rem;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #eaeaea;
+  border: 1px solid #0f3460;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(233, 69, 96, 0.1);
+  border-color: #e94560;
+}
+
+.btn-secondary:focus {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
 }
 
 .table-container {

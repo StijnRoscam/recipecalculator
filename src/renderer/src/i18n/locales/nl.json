@@ -19,7 +19,8 @@
     "loading": "Laden...",
     "noResults": "Geen resultaten gevonden",
     "confirm": "Bevestigen",
-    "back": "Terug"
+    "back": "Terug",
+    "retry": "Opnieuw proberen"
   },
   "language": {
     "label": "Taal",

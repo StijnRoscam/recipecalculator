@@ -303,6 +303,45 @@ describe('MaterialsPage', () => {
     })
   })
 
+  it('shows error state when API call fails', async () => {
+    mockGetAll.mockRejectedValue(new Error('Network error'))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load data')).toBeInTheDocument()
+      expect(screen.getByText('Retry')).toBeInTheDocument()
+    })
+  })
+
+  it('retries fetching materials when retry button is clicked', async () => {
+    mockGetAll.mockRejectedValueOnce(new Error('Network error'))
+    mockGetAll.mockResolvedValueOnce([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load data')).toBeInTheDocument()
+    })
+
+    const retryButton = screen.getByText('Retry')
+    fireEvent.click(retryButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('No materials found. Add your first material to get started.')).toBeInTheDocument()
+    })
+
+    expect(mockGetAll).toHaveBeenCalledTimes(2)
+  })
+
   it('renders in Dutch when language is set to Dutch', async () => {
     testI18n = createTestI18n('nl')
     mockGetAll.mockResolvedValue([])

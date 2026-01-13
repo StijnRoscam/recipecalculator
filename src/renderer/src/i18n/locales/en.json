@@ -19,7 +19,8 @@
     "loading": "Loading...",
     "noResults": "No results found",
     "confirm": "Confirm",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry"
   },
   "language": {
     "label": "Language",
