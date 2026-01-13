@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
+import { Navigation } from './components/Navigation'
+import { MaterialsPage } from './pages/MaterialsPage'
 
 function App(): JSX.Element {
-  const [count, setCount] = useState(0)
+  const [activePage, setActivePage] = useState('materials')
   const { t } = useTranslation()
+
+  const handleNavigate = (page: string): void => {
+    setActivePage(page)
+  }
 
   return (
     <div className="app">
@@ -17,11 +23,9 @@ function App(): JSX.Element {
           <LanguageSwitcher />
         </div>
       </header>
+      <Navigation activePage={activePage} onNavigate={handleNavigate} />
       <main className="app-main">
-        <div className="counter">
-          <p>Count: {count}</p>
-          <button onClick={() => setCount((c) => c + 1)}>Increment</button>
-        </div>
+        {activePage === 'materials' && <MaterialsPage />}
       </main>
     </div>
   )

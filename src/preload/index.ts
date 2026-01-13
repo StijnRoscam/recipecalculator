@@ -1,9 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { Material } from '../shared/types'
 
 // Custom APIs for renderer
 const api = {
-  // Add your custom APIs here
+  materials: {
+    getAll: (includeArchived: boolean): Promise<Material[]> =>
+      ipcRenderer.invoke('materials:getAll', includeArchived)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

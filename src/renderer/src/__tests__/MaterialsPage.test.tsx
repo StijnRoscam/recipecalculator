@@ -1,0 +1,401 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { I18nextProvider } from 'react-i18next'
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+import { MaterialsPage } from '../pages/MaterialsPage'
+import type { Material } from '../../../shared/types'
+
+// Import translation files
+import en from '../i18n/locales/en.json'
+import nl from '../i18n/locales/nl.json'
+
+// Create a test i18n instance
+const createTestI18n = (language = 'en') => {
+  const testI18n = i18n.createInstance()
+  testI18n.use(initReactI18next).init({
+    lng: language,
+    fallbackLng: 'en',
+    resources: {
+      en: { translation: en },
+      nl: { translation: nl }
+    },
+    interpolation: {
+      escapeValue: false
+    },
+    react: {
+      useSuspense: false
+    }
+  })
+  return testI18n
+}
+
+// Mock materials data (using camelCase to match Prisma output)
+const mockMaterials: Material[] = [
+  {
+    id: '1',
+    name: 'Beef',
+    categoryId: null,
+    currentPrice: 12.5,
+    unitOfMeasure: 'kg',
+    supplier: 'Local Farm',
+    sku: 'BF001',
+    notes: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    isArchived: false
+  },
+  {
+    id: '2',
+    name: 'Pork',
+    categoryId: null,
+    currentPrice: 8.75,
+    unitOfMeasure: 'kg',
+    supplier: 'Supplier B',
+    sku: 'PK001',
+    notes: 'Premium quality',
+    createdAt: '2024-01-02T00:00:00Z',
+    updatedAt: '2024-01-02T00:00:00Z',
+    isArchived: false
+  },
+  {
+    id: '3',
+    name: 'Archived Material',
+    categoryId: null,
+    currentPrice: 5.0,
+    unitOfMeasure: 'g',
+    supplier: null,
+    sku: null,
+    notes: null,
+    createdAt: '2024-01-03T00:00:00Z',
+    updatedAt: '2024-01-03T00:00:00Z',
+    isArchived: true
+  }
+]
+
+// Setup window.api mock
+const mockGetAll = vi.fn()
+
+beforeEach(() => {
+  // Reset mock before each test
+  mockGetAll.mockReset()
+
+  // Setup window.api mock
+  Object.defineProperty(window, 'api', {
+    value: {
+      materials: {
+        getAll: mockGetAll
+      }
+    },
+    writable: true,
+    configurable: true
+  })
+})
+
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
+describe('MaterialsPage', () => {
+  let testI18n: typeof i18n
+
+  beforeEach(() => {
+    testI18n = createTestI18n('en')
+  })
+
+  it('shows loading state initially', () => {
+    mockGetAll.mockImplementation(() => new Promise(() => {})) // Never resolves
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+  })
+
+  it('shows empty state when no materials exist', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No materials found. Add your first material to get started.')
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('displays materials in a table', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef')).toBeInTheDocument()
+      expect(screen.getByText('Pork')).toBeInTheDocument()
+    })
+
+    // Check price formatting
+    expect(screen.getByText('€12.50')).toBeInTheDocument()
+    expect(screen.getByText('€8.75')).toBeInTheDocument()
+
+    // Check supplier
+    expect(screen.getByText('Local Farm')).toBeInTheDocument()
+    expect(screen.getByText('Supplier B')).toBeInTheDocument()
+  })
+
+  it('displays table headers correctly', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Name')).toBeInTheDocument()
+      expect(screen.getByText('Price')).toBeInTheDocument()
+      expect(screen.getByText('Unit')).toBeInTheDocument()
+      expect(screen.getByText('Supplier')).toBeInTheDocument()
+      expect(screen.getByText('Actions')).toBeInTheDocument()
+    })
+  })
+
+  it('shows Add Material button', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Add Material')).toBeInTheDocument()
+    })
+  })
+
+  it('shows Show archived checkbox unchecked by default', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      const checkbox = screen.getByRole('checkbox')
+      expect(checkbox).not.toBeChecked()
+    })
+  })
+
+  it('fetches materials with includeArchived=false by default', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(mockGetAll).toHaveBeenCalledWith(false)
+    })
+  })
+
+  it('fetches materials with includeArchived=true when checkbox is checked', async () => {
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(mockGetAll).toHaveBeenCalledWith(false)
+    })
+
+    const checkbox = screen.getByRole('checkbox')
+    fireEvent.click(checkbox)
+
+    await waitFor(() => {
+      expect(mockGetAll).toHaveBeenCalledWith(true)
+    })
+  })
+
+  it('displays archived badge for archived materials', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials)
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    // Check the show archived checkbox
+    const checkbox = screen.getByRole('checkbox')
+    fireEvent.click(checkbox)
+
+    await waitFor(() => {
+      expect(screen.getByText('Archived')).toBeInTheDocument()
+    })
+  })
+
+  it('displays dash for missing supplier', async () => {
+    mockGetAll.mockResolvedValue([mockMaterials[2]]) // Archived material has no supplier
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('-')).toBeInTheDocument()
+    })
+  })
+
+  it('displays unit of measure correctly', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      const kgCells = screen.getAllByText('kg')
+      expect(kgCells.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('has disabled action buttons (placeholders)', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      const editButtons = screen.getAllByTitle('Edit')
+      const deleteButtons = screen.getAllByTitle('Delete')
+      const archiveButtons = screen.getAllByTitle('Archive')
+
+      editButtons.forEach((btn) => expect(btn).toBeDisabled())
+      deleteButtons.forEach((btn) => expect(btn).toBeDisabled())
+      archiveButtons.forEach((btn) => expect(btn).toBeDisabled())
+    })
+  })
+
+  it('shows error state when API call fails', async () => {
+    mockGetAll.mockRejectedValue(new Error('Network error'))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load data')).toBeInTheDocument()
+      expect(screen.getByText('Retry')).toBeInTheDocument()
+    })
+  })
+
+  it('retries fetching materials when retry button is clicked', async () => {
+    mockGetAll.mockRejectedValueOnce(new Error('Network error'))
+    mockGetAll.mockResolvedValueOnce([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load data')).toBeInTheDocument()
+    })
+
+    const retryButton = screen.getByText('Retry')
+    fireEvent.click(retryButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('No materials found. Add your first material to get started.')).toBeInTheDocument()
+    })
+
+    expect(mockGetAll).toHaveBeenCalledTimes(2)
+  })
+
+  it('renders in Dutch when language is set to Dutch', async () => {
+    testI18n = createTestI18n('nl')
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Materiaal toevoegen')).toBeInTheDocument()
+      expect(screen.getByText('Gearchiveerde materialen tonen')).toBeInTheDocument()
+      expect(
+        screen.getByText('Geen materialen gevonden. Voeg je eerste materiaal toe om te beginnen.')
+      ).toBeInTheDocument()
+    })
+  })
+})
+
+describe('MaterialsPage translations', () => {
+  it('has all required English translation keys for materials', () => {
+    const testI18n = createTestI18n('en')
+
+    expect(testI18n.t('materials.addMaterial')).toBe('Add Material')
+    expect(testI18n.t('materials.showArchived')).toBe('Show archived materials')
+    expect(testI18n.t('materials.emptyState')).toBe(
+      'No materials found. Add your first material to get started.'
+    )
+    expect(testI18n.t('materials.archived')).toBe('Archived')
+    expect(testI18n.t('materials.archive')).toBe('Archive')
+    expect(testI18n.t('materials.unarchive')).toBe('Unarchive')
+    expect(testI18n.t('materials.table.name')).toBe('Name')
+    expect(testI18n.t('materials.table.price')).toBe('Price')
+    expect(testI18n.t('materials.table.unit')).toBe('Unit')
+    expect(testI18n.t('materials.table.supplier')).toBe('Supplier')
+    expect(testI18n.t('materials.table.actions')).toBe('Actions')
+  })
+
+  it('has all required Dutch translation keys for materials', () => {
+    const testI18n = createTestI18n('nl')
+
+    expect(testI18n.t('materials.addMaterial')).toBe('Materiaal toevoegen')
+    expect(testI18n.t('materials.showArchived')).toBe('Gearchiveerde materialen tonen')
+    expect(testI18n.t('materials.emptyState')).toBe(
+      'Geen materialen gevonden. Voeg je eerste materiaal toe om te beginnen.'
+    )
+    expect(testI18n.t('materials.archived')).toBe('Gearchiveerd')
+    expect(testI18n.t('materials.archive')).toBe('Archiveren')
+    expect(testI18n.t('materials.unarchive')).toBe('Herstellen')
+    expect(testI18n.t('materials.table.name')).toBe('Naam')
+    expect(testI18n.t('materials.table.price')).toBe('Prijs')
+    expect(testI18n.t('materials.table.unit')).toBe('Eenheid')
+    expect(testI18n.t('materials.table.supplier')).toBe('Leverancier')
+    expect(testI18n.t('materials.table.actions')).toBe('Acties')
+  })
+})
