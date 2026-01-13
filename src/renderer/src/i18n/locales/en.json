@@ -46,6 +46,11 @@
     "archived": "Archived",
     "archive": "Archive",
     "unarchive": "Unarchive",
+    "search": {
+      "placeholder": "Search materials...",
+      "noResults": "No materials match your search",
+      "clear": "Clear search"
+    },
     "table": {
       "name": "Name",
       "price": "Price",

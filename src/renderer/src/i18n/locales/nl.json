@@ -46,6 +46,11 @@
     "archived": "Gearchiveerd",
     "archive": "Archiveren",
     "unarchive": "Herstellen",
+    "search": {
+      "placeholder": "Materialen zoeken...",
+      "noResults": "Geen materialen gevonden voor uw zoekopdracht",
+      "clear": "Zoekopdracht wissen"
+    },
     "table": {
       "name": "Naam",
       "price": "Prijs",

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Material } from '../../../shared/types'
+import { useDebounce } from '../hooks/useDebounce'
 import './MaterialsPage.css'
 
 /**
@@ -13,6 +14,8 @@ export function MaterialsPage(): JSX.Element {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   useEffect(() => {
     const fetchMaterials = async (): Promise<void> => {
@@ -53,6 +56,41 @@ export function MaterialsPage(): JSX.Element {
     return unit
   }
 
+  // Filter materials based on debounced search term
+  const filteredMaterials = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      return materials
+    }
+
+    const searchLower = debouncedSearchTerm.toLowerCase()
+    return materials.filter((material) => {
+      const nameMatch = material.name.toLowerCase().includes(searchLower)
+      const supplierMatch = material.supplier?.toLowerCase().includes(searchLower)
+      return nameMatch || supplierMatch
+    })
+  }, [materials, debouncedSearchTerm])
+
+  // Handle Escape key to clear search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && searchTerm) {
+        setSearchTerm('')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [searchTerm])
+
+  const handleClearSearch = (): void => {
+    setSearchTerm('')
+  }
+
+  // Check if we're showing "no search results" vs "empty state"
+  const hasSearchTerm = debouncedSearchTerm.length > 0
+  const hasNoSearchResults = hasSearchTerm && filteredMaterials.length === 0
+  const hasNoMaterials = materials.length === 0
+
   return (
     <div className="materials-page">
       <div className="page-header">
@@ -67,6 +105,40 @@ export function MaterialsPage(): JSX.Element {
       </div>
 
       <div className="page-controls">
+        <div className="search-container">
+          <input
+            type="text"
+            className="search-input"
+            placeholder={t('materials.search.placeholder')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label={t('materials.search.placeholder')}
+          />
+          {searchTerm && (
+            <button
+              className="search-clear-btn"
+              onClick={handleClearSearch}
+              title={t('materials.search.clear')}
+              aria-label={t('materials.search.clear')}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 4L4 12M4 4L12 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -90,9 +162,13 @@ export function MaterialsPage(): JSX.Element {
               {t('common.retry')}
             </button>
           </div>
-        ) : materials.length === 0 ? (
+        ) : hasNoMaterials ? (
           <div className="empty-state">
             <p>{t('materials.emptyState')}</p>
+          </div>
+        ) : hasNoSearchResults ? (
+          <div className="empty-state">
+            <p>{t('materials.search.noResults')}</p>
           </div>
         ) : (
           <div className="table-container">
@@ -107,7 +183,7 @@ export function MaterialsPage(): JSX.Element {
                 </tr>
               </thead>
               <tbody>
-                {materials.map((material) => (
+                {filteredMaterials.map((material) => (
                   <tr
                     key={material.id}
                     className={material.isArchived ? 'archived-row' : ''}
