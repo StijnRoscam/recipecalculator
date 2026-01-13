@@ -8,7 +8,8 @@ import {
   unarchiveMaterial
 } from './materials'
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
-import { getAllPackaging } from './packaging'
+import { getAllPackaging, createPackaging } from './packaging'
+import type { CreatePackagingInput } from './packaging'
 
 /**
  * Registers all IPC handlers for the application.
@@ -100,6 +101,20 @@ export function registerIpcHandlers(): void {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`Failed to get packaging materials: ${errorMessage}`)
       throw new Error(`Failed to get packaging materials: ${errorMessage}`)
+    }
+  })
+
+  ipcMain.handle('packaging:create', async (_event, data: CreatePackagingInput) => {
+    console.log('[IPC] packaging:create called with:', JSON.stringify(data, null, 2))
+    try {
+      const result = await createPackaging(data)
+      console.log('[IPC] packaging:create succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] packaging:create failed: ${errorMessage}`)
+      console.error('[IPC] Full error:', error)
+      throw new Error(errorMessage)
     }
   })
 

@@ -124,6 +124,27 @@
       "sheet": "Vel",
       "box": "Doos",
       "bag": "Zak"
+    },
+    "create": {
+      "title": "Nieuwe Verpakking Aanmaken",
+      "fields": {
+        "name": "Verpakkingsnaam",
+        "namePlaceholder": "Voer verpakkingsnaam in",
+        "unitPrice": "Stukprijs",
+        "unitPricePlaceholder": "0,00",
+        "unitType": "Eenheidstype",
+        "supplier": "Leverancier",
+        "supplierPlaceholder": "Voer leverancier in (optioneel)",
+        "sku": "SKU",
+        "skuPlaceholder": "Voer SKU in (optioneel)",
+        "notes": "Notities",
+        "notesPlaceholder": "Voer extra notities in (optioneel)"
+      },
+      "success": "Verpakking succesvol aangemaakt",
+      "errors": {
+        "duplicateName": "Er bestaat al een verpakking met deze naam",
+        "createFailed": "Verpakking aanmaken mislukt"
+      }
     }
   }
 }

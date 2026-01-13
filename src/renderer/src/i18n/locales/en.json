@@ -124,6 +124,27 @@
       "sheet": "Sheet",
       "box": "Box",
       "bag": "Bag"
+    },
+    "create": {
+      "title": "Create New Packaging",
+      "fields": {
+        "name": "Packaging Name",
+        "namePlaceholder": "Enter packaging name",
+        "unitPrice": "Unit Price",
+        "unitPricePlaceholder": "0.00",
+        "unitType": "Unit Type",
+        "supplier": "Supplier",
+        "supplierPlaceholder": "Enter supplier name (optional)",
+        "sku": "SKU",
+        "skuPlaceholder": "Enter SKU (optional)",
+        "notes": "Notes",
+        "notesPlaceholder": "Enter any additional notes (optional)"
+      },
+      "success": "Packaging created successfully",
+      "errors": {
+        "duplicateName": "A packaging material with this name already exists",
+        "createFailed": "Failed to create packaging"
+      }
     }
   }
 }
