@@ -97,5 +97,33 @@
         "loadFailed": "Failed to load material"
       }
     }
+  },
+  "packaging": {
+    "addPackaging": "Add Packaging",
+    "showArchived": "Show archived packaging",
+    "emptyState": "No packaging materials found. Add your first packaging to get started.",
+    "archived": "Archived",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "search": {
+      "placeholder": "Search packaging...",
+      "noResults": "No packaging materials match your search",
+      "clear": "Clear search"
+    },
+    "table": {
+      "name": "Name",
+      "unitPrice": "Unit Price",
+      "unitType": "Unit Type",
+      "supplier": "Supplier",
+      "actions": "Actions"
+    },
+    "unitTypes": {
+      "piece": "Piece",
+      "meter": "Meter",
+      "roll": "Roll",
+      "sheet": "Sheet",
+      "box": "Box",
+      "bag": "Bag"
+    }
   }
 }

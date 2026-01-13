@@ -1,8 +1,9 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { MaterialsApi } from '../shared/types'
+import type { MaterialsApi, PackagingApi } from '../shared/types'
 
 interface Api {
   materials: MaterialsApi
+  packaging: PackagingApi
 }
 
 declare global {

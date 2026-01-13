@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { Material, CreateMaterialInput, UpdateMaterialInput } from '../shared/types'
+import type {
+  Material,
+  CreateMaterialInput,
+  UpdateMaterialInput,
+  PackagingMaterial
+} from '../shared/types'
 
 // Custom APIs for renderer
 const api = {
@@ -14,6 +19,10 @@ const api = {
       ipcRenderer.invoke('materials:update', id, data),
     archive: (id: string): Promise<Material> => ipcRenderer.invoke('materials:archive', id),
     unarchive: (id: string): Promise<Material> => ipcRenderer.invoke('materials:unarchive', id)
+  },
+  packaging: {
+    getAll: (includeArchived: boolean): Promise<PackagingMaterial[]> =>
+      ipcRenderer.invoke('packaging:getAll', includeArchived)
   }
 }
 
