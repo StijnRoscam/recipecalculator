@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
@@ -362,6 +362,340 @@ describe('MaterialsPage', () => {
   })
 })
 
+describe('MaterialsPage search functionality', () => {
+  let testI18n: typeof i18n
+
+  beforeEach(() => {
+    testI18n = createTestI18n('en')
+  })
+
+  it('shows search input with placeholder', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      expect(searchInput).toBeInTheDocument()
+    })
+  })
+
+  it('filters materials by name as user types (case-insensitive)', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'beef' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.queryByText('Pork')).not.toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('filters materials by partial name match', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'ork' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+    expect(screen.queryByText('Beef')).not.toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('filters materials by supplier', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'Local Farm' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.queryByText('Pork')).not.toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('shows no results message when search has no matches', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'xyz' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('No materials match your search')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('shows clear button when search has text', async () => {
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef')).toBeInTheDocument()
+    })
+
+    // Clear button should not be visible initially
+    expect(screen.queryByTitle('Clear search')).not.toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+    fireEvent.change(searchInput, { target: { value: 'test' } })
+
+    // Clear button should now be visible
+    expect(screen.getByTitle('Clear search')).toBeInTheDocument()
+  })
+
+  it('clears search when clear button is clicked', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'beef' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.queryByText('Pork')).not.toBeInTheDocument()
+
+    // Click clear button
+    const clearButton = screen.getByTitle('Clear search')
+
+    await act(async () => {
+      fireEvent.click(clearButton)
+    })
+
+    // Verify input value is cleared immediately
+    expect((searchInput as HTMLInputElement).value).toBe('')
+
+    // Wait for debounce to update filtered results
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('clears search when Escape key is pressed', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'beef' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.queryByText('Pork')).not.toBeInTheDocument()
+
+    // Press Escape
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'Escape' })
+    })
+
+    // Verify input value is cleared immediately
+    expect((searchInput as HTMLInputElement).value).toBe('')
+
+    // Wait for debounce to update filtered results
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('debounces search input (only triggers after 300ms delay)', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Search materials...')
+
+    // Type multiple characters quickly
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'b' } })
+      await vi.advanceTimersByTimeAsync(100)
+      fireEvent.change(searchInput, { target: { value: 'be' } })
+      await vi.advanceTimersByTimeAsync(100)
+      fireEvent.change(searchInput, { target: { value: 'bee' } })
+      await vi.advanceTimersByTimeAsync(100)
+      fireEvent.change(searchInput, { target: { value: 'beef' } })
+    })
+
+    // Before debounce completes, both items should still be visible
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.getByText('Pork')).toBeInTheDocument()
+
+    // After debounce delay
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+    expect(screen.queryByText('Pork')).not.toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('renders search placeholder in Dutch', async () => {
+    testI18n = createTestI18n('nl')
+    mockGetAll.mockResolvedValue([])
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <MaterialsPage />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Materialen zoeken...')).toBeInTheDocument()
+    })
+  })
+
+  it('renders no search results message in Dutch', async () => {
+    vi.useFakeTimers()
+    testI18n = createTestI18n('nl')
+    mockGetAll.mockResolvedValue(mockMaterials.filter((m) => !m.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <MaterialsPage />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef')).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText('Materialen zoeken...')
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'xyz' } })
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(
+      screen.getByText('Geen materialen gevonden voor uw zoekopdracht')
+    ).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+})
+
 describe('MaterialsPage translations', () => {
   it('has all required English translation keys for materials', () => {
     const testI18n = createTestI18n('en')
@@ -379,6 +713,9 @@ describe('MaterialsPage translations', () => {
     expect(testI18n.t('materials.table.unit')).toBe('Unit')
     expect(testI18n.t('materials.table.supplier')).toBe('Supplier')
     expect(testI18n.t('materials.table.actions')).toBe('Actions')
+    expect(testI18n.t('materials.search.placeholder')).toBe('Search materials...')
+    expect(testI18n.t('materials.search.noResults')).toBe('No materials match your search')
+    expect(testI18n.t('materials.search.clear')).toBe('Clear search')
   })
 
   it('has all required Dutch translation keys for materials', () => {
@@ -397,5 +734,10 @@ describe('MaterialsPage translations', () => {
     expect(testI18n.t('materials.table.unit')).toBe('Eenheid')
     expect(testI18n.t('materials.table.supplier')).toBe('Leverancier')
     expect(testI18n.t('materials.table.actions')).toBe('Acties')
+    expect(testI18n.t('materials.search.placeholder')).toBe('Materialen zoeken...')
+    expect(testI18n.t('materials.search.noResults')).toBe(
+      'Geen materialen gevonden voor uw zoekopdracht'
+    )
+    expect(testI18n.t('materials.search.clear')).toBe('Zoekopdracht wissen')
   })
 })
