@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import { getAllMaterials } from './materials'
+import { getAllMaterials, createMaterial } from './materials'
+import type { CreateMaterialInput } from './materials'
 
 /**
  * Registers all IPC handlers for the application.
@@ -14,6 +15,20 @@ export function registerIpcHandlers(): void {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`Failed to get materials: ${errorMessage}`)
       throw new Error(`Failed to get materials: ${errorMessage}`)
+    }
+  })
+
+  ipcMain.handle('materials:create', async (_event, data: CreateMaterialInput) => {
+    console.log('[IPC] materials:create called with:', JSON.stringify(data, null, 2))
+    try {
+      const result = await createMaterial(data)
+      console.log('[IPC] materials:create succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] materials:create failed: ${errorMessage}`)
+      console.error('[IPC] Full error:', error)
+      throw new Error(errorMessage)
     }
   })
 

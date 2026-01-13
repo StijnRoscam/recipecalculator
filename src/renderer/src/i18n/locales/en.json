@@ -57,6 +57,31 @@
       "unit": "Unit",
       "supplier": "Supplier",
       "actions": "Actions"
+    },
+    "create": {
+      "title": "Create New Material",
+      "fields": {
+        "name": "Material Name",
+        "namePlaceholder": "Enter material name",
+        "currentPrice": "Price per Unit",
+        "currentPricePlaceholder": "0.00",
+        "unitOfMeasure": "Unit of Measure",
+        "supplier": "Supplier",
+        "supplierPlaceholder": "Enter supplier name (optional)",
+        "sku": "SKU",
+        "skuPlaceholder": "Enter SKU (optional)",
+        "notes": "Notes",
+        "notesPlaceholder": "Enter any additional notes (optional)"
+      },
+      "units": {
+        "kg": "Kilogram (kg)",
+        "g": "Gram (g)"
+      },
+      "success": "Material created successfully",
+      "errors": {
+        "duplicateName": "A material with this name already exists",
+        "createFailed": "Failed to create material"
+      }
     }
   }
 }
