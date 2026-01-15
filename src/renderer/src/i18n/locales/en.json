@@ -164,5 +164,39 @@
       "notFoundError": "Packaging material not found",
       "inUseError": "Cannot delete this packaging material because it is used in the following recipes: {{recipes}}. Consider archiving it instead."
     }
+  },
+  "recipes": {
+    "createRecipe": "Create Recipe",
+    "showArchived": "Show archived recipes",
+    "showFavoritesOnly": "Favorites only",
+    "emptyState": "No recipes found. Create your first recipe to get started.",
+    "noFavorites": "No favorite recipes. Star a recipe to add it to your favorites.",
+    "archived": "Archived",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "archiveSuccess": "Recipe archived successfully",
+    "unarchiveSuccess": "Recipe unarchived successfully",
+    "archiveError": "Failed to archive recipe",
+    "unarchiveError": "Failed to unarchive recipe",
+    "duplicate": "Duplicate",
+    "duplicateSuccess": "Recipe duplicated successfully",
+    "duplicateError": "Failed to duplicate recipe",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
+    "toggleFavoriteError": "Failed to update favorite status",
+    "totalCost": "Total Cost",
+    "search": {
+      "placeholder": "Search recipes...",
+      "noResults": "No recipes match your search",
+      "clear": "Clear search"
+    },
+    "delete": {
+      "confirmTitle": "Delete Recipe?",
+      "confirmMessage": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+      "success": "Recipe deleted successfully",
+      "error": "Failed to delete recipe"
+    }
   }
 }
