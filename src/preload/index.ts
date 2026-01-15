@@ -6,7 +6,12 @@ import type {
   UpdateMaterialInput,
   PackagingMaterial,
   CreatePackagingInput,
-  UpdatePackagingInput
+  UpdatePackagingInput,
+  Recipe,
+  RecipeWithDetails,
+  RecipeWithFullDetails,
+  CreateRecipeInput,
+  UpdateRecipeInput
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -31,6 +36,22 @@ const api = {
     update: (id: string, data: UpdatePackagingInput): Promise<PackagingMaterial> =>
       ipcRenderer.invoke('packaging:update', id, data),
     delete: (id: string): Promise<void> => ipcRenderer.invoke('packaging:delete', id)
+  },
+  recipes: {
+    getAll: (includeArchived: boolean): Promise<RecipeWithDetails[]> =>
+      ipcRenderer.invoke('recipes:getAll', includeArchived),
+    get: (id: string): Promise<RecipeWithFullDetails | null> =>
+      ipcRenderer.invoke('recipes:get', id),
+    create: (data: CreateRecipeInput): Promise<Recipe> =>
+      ipcRenderer.invoke('recipes:create', data),
+    update: (id: string, data: UpdateRecipeInput): Promise<Recipe> =>
+      ipcRenderer.invoke('recipes:update', id, data),
+    archive: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:archive', id),
+    unarchive: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:unarchive', id),
+    toggleFavorite: (id: string): Promise<Recipe> =>
+      ipcRenderer.invoke('recipes:toggleFavorite', id),
+    duplicate: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:duplicate', id),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('recipes:delete', id)
   }
 }
 

@@ -10,6 +10,18 @@ import {
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
 import { getAllPackaging, getPackaging, createPackaging, updatePackaging, deletePackaging } from './packaging'
 import type { CreatePackagingInput, UpdatePackagingInput } from './packaging'
+import {
+  getAllRecipes,
+  getRecipe,
+  createRecipe,
+  updateRecipe,
+  archiveRecipe,
+  unarchiveRecipe,
+  toggleFavoriteRecipe,
+  duplicateRecipe,
+  deleteRecipe
+} from './recipes'
+import type { CreateRecipeInput, UpdateRecipeInput } from './recipes'
 
 /**
  * Registers all IPC handlers for the application.
@@ -152,6 +164,120 @@ export function registerIpcHandlers(): void {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] packaging:delete failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  // Recipes handlers
+  ipcMain.handle('recipes:getAll', async (_event, includeArchived: boolean) => {
+    try {
+      return await getAllRecipes(includeArchived)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`Failed to get recipes: ${errorMessage}`)
+      throw new Error(`Failed to get recipes: ${errorMessage}`)
+    }
+  })
+
+  ipcMain.handle('recipes:get', async (_event, id: string) => {
+    console.log('[IPC] recipes:get called with id:', id)
+    try {
+      const result = await getRecipe(id)
+      console.log('[IPC] recipes:get succeeded:', result ? result.id : 'not found')
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:get failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:create', async (_event, data: CreateRecipeInput) => {
+    console.log('[IPC] recipes:create called with:', JSON.stringify(data, null, 2))
+    try {
+      const result = await createRecipe(data)
+      console.log('[IPC] recipes:create succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:create failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:update', async (_event, id: string, data: UpdateRecipeInput) => {
+    console.log('[IPC] recipes:update called with id:', id, 'data:', JSON.stringify(data, null, 2))
+    try {
+      const result = await updateRecipe(id, data)
+      console.log('[IPC] recipes:update succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:update failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:archive', async (_event, id: string) => {
+    console.log('[IPC] recipes:archive called with id:', id)
+    try {
+      const result = await archiveRecipe(id)
+      console.log('[IPC] recipes:archive succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:archive failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:unarchive', async (_event, id: string) => {
+    console.log('[IPC] recipes:unarchive called with id:', id)
+    try {
+      const result = await unarchiveRecipe(id)
+      console.log('[IPC] recipes:unarchive succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:unarchive failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:toggleFavorite', async (_event, id: string) => {
+    console.log('[IPC] recipes:toggleFavorite called with id:', id)
+    try {
+      const result = await toggleFavoriteRecipe(id)
+      console.log('[IPC] recipes:toggleFavorite succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:toggleFavorite failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:duplicate', async (_event, id: string) => {
+    console.log('[IPC] recipes:duplicate called with id:', id)
+    try {
+      const result = await duplicateRecipe(id)
+      console.log('[IPC] recipes:duplicate succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:duplicate failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:delete', async (_event, id: string) => {
+    console.log('[IPC] recipes:delete called with id:', id)
+    try {
+      await deleteRecipe(id)
+      console.log('[IPC] recipes:delete succeeded')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:delete failed: ${errorMessage}`)
       throw new Error(errorMessage)
     }
   })

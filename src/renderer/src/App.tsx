@@ -8,17 +8,22 @@ import { EditMaterialPage } from './pages/EditMaterialPage'
 import { PackagingPage } from './pages/PackagingPage'
 import { CreatePackagingPage } from './pages/CreatePackagingPage'
 import { EditPackagingPage } from './pages/EditPackagingPage'
+import { RecipesPage } from './pages/RecipesPage'
 
 function App(): JSX.Element {
-  const [activePage, setActivePage] = useState('materials')
+  const [activePage, setActivePage] = useState('recipes')
   const [editMaterialId, setEditMaterialId] = useState<string | null>(null)
   const [editPackagingId, setEditPackagingId] = useState<string | null>(null)
+  const [viewRecipeId, setViewRecipeId] = useState<string | null>(null)
+  const [editRecipeId, setEditRecipeId] = useState<string | null>(null)
   const { t } = useTranslation()
 
   const handleNavigate = (page: string): void => {
     setActivePage(page)
     setEditMaterialId(null)
     setEditPackagingId(null)
+    setViewRecipeId(null)
+    setEditRecipeId(null)
   }
 
   const handleCreateMaterial = (): void => {
@@ -57,6 +62,32 @@ function App(): JSX.Element {
   const handlePackagingCancel = (): void => {
     setActivePage('packaging')
     setEditPackagingId(null)
+  }
+
+  const handleCreateRecipe = (): void => {
+    setActivePage('recipes/new')
+  }
+
+  const handleViewRecipe = (id: string): void => {
+    setViewRecipeId(id)
+    setActivePage('recipes/view')
+  }
+
+  const handleEditRecipe = (id: string): void => {
+    setEditRecipeId(id)
+    setActivePage('recipes/edit')
+  }
+
+  const handleRecipeSuccess = (): void => {
+    setActivePage('recipes')
+    setViewRecipeId(null)
+    setEditRecipeId(null)
+  }
+
+  const handleRecipeCancel = (): void => {
+    setActivePage('recipes')
+    setViewRecipeId(null)
+    setEditRecipeId(null)
   }
 
   return (
@@ -108,6 +139,13 @@ function App(): JSX.Element {
             packagingId={editPackagingId}
             onCancel={handlePackagingCancel}
             onSuccess={handlePackagingSuccess}
+          />
+        )}
+        {activePage === 'recipes' && (
+          <RecipesPage
+            onCreateRecipe={handleCreateRecipe}
+            onViewRecipe={handleViewRecipe}
+            onEditRecipe={handleEditRecipe}
           />
         )}
       </main>

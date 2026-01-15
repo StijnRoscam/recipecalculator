@@ -164,5 +164,39 @@
       "notFoundError": "Verpakking niet gevonden",
       "inUseError": "Deze verpakking kan niet worden verwijderd omdat deze wordt gebruikt in de volgende recepten: {{recipes}}. Overweeg om deze te archiveren."
     }
+  },
+  "recipes": {
+    "createRecipe": "Recept aanmaken",
+    "showArchived": "Gearchiveerde recepten tonen",
+    "showFavoritesOnly": "Alleen favorieten",
+    "emptyState": "Geen recepten gevonden. Maak je eerste recept aan om te beginnen.",
+    "noFavorites": "Geen favoriete recepten. Markeer een recept met een ster om het aan je favorieten toe te voegen.",
+    "archived": "Gearchiveerd",
+    "archive": "Archiveren",
+    "unarchive": "Herstellen",
+    "archiveSuccess": "Recept succesvol gearchiveerd",
+    "unarchiveSuccess": "Recept succesvol hersteld",
+    "archiveError": "Recept archiveren mislukt",
+    "unarchiveError": "Recept herstellen mislukt",
+    "duplicate": "Dupliceren",
+    "duplicateSuccess": "Recept succesvol gedupliceerd",
+    "duplicateError": "Recept dupliceren mislukt",
+    "addFavorite": "Toevoegen aan favorieten",
+    "removeFavorite": "Verwijderen uit favorieten",
+    "favoriteAdded": "Toegevoegd aan favorieten",
+    "favoriteRemoved": "Verwijderd uit favorieten",
+    "toggleFavoriteError": "Favoriet status bijwerken mislukt",
+    "totalCost": "Totale kosten",
+    "search": {
+      "placeholder": "Recepten zoeken...",
+      "noResults": "Geen recepten gevonden voor uw zoekopdracht",
+      "clear": "Zoekopdracht wissen"
+    },
+    "delete": {
+      "confirmTitle": "Recept verwijderen?",
+      "confirmMessage": "Weet u zeker dat u \"{{name}}\" permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "success": "Recept succesvol verwijderd",
+      "error": "Recept verwijderen mislukt"
+    }
   }
 }
