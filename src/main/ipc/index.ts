@@ -8,7 +8,7 @@ import {
   unarchiveMaterial
 } from './materials'
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
-import { getAllPackaging, getPackaging, createPackaging, updatePackaging } from './packaging'
+import { getAllPackaging, getPackaging, createPackaging, updatePackaging, deletePackaging } from './packaging'
 import type { CreatePackagingInput, UpdatePackagingInput } from './packaging'
 
 /**
@@ -140,6 +140,18 @@ export function registerIpcHandlers(): void {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] packaging:update failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('packaging:delete', async (_event, id: string) => {
+    console.log('[IPC] packaging:delete called with id:', id)
+    try {
+      await deletePackaging(id)
+      console.log('[IPC] packaging:delete succeeded')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] packaging:delete failed: ${errorMessage}`)
       throw new Error(errorMessage)
     }
   })

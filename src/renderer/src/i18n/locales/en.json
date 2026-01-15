@@ -155,6 +155,14 @@
         "updateFailed": "Failed to update packaging",
         "loadFailed": "Failed to load packaging material"
       }
+    },
+    "delete": {
+      "confirmTitle": "Delete Packaging Material?",
+      "confirmMessage": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+      "success": "Packaging material deleted successfully",
+      "error": "Failed to delete packaging material",
+      "notFoundError": "Packaging material not found",
+      "inUseError": "Cannot delete this packaging material because it is used in the following recipes: {{recipes}}. Consider archiving it instead."
     }
   }
 }

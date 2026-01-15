@@ -182,3 +182,50 @@ export async function updatePackaging(id: string, data: UpdatePackagingInput): P
   console.log('[updatePackaging] Packaging updated successfully:', packaging.id)
   return packaging
 }
+
+/**
+ * Deletes a packaging material from the database.
+ *
+ * @param id - The packaging material ID to delete
+ * @throws Error if the packaging material is not found
+ * @throws Error if the packaging material is used in any recipes (PACKAGING_IN_USE)
+ */
+export async function deletePackaging(id: string): Promise<void> {
+  console.log('[deletePackaging] Called with id:', id)
+
+  const prisma = getPrisma()
+
+  // Check if packaging material exists
+  const existingPackaging = await prisma.packagingMaterial.findUnique({
+    where: { id },
+    select: { id: true, name: true }
+  })
+
+  if (!existingPackaging) {
+    console.log('[deletePackaging] Packaging not found:', id)
+    throw new Error('NOT_FOUND')
+  }
+
+  // Check if packaging is used in any recipes
+  const recipesUsingPackaging = await prisma.recipePackaging.findMany({
+    where: { packagingMaterialId: id },
+    select: {
+      recipe: {
+        select: { name: true }
+      }
+    }
+  })
+
+  if (recipesUsingPackaging.length > 0) {
+    const recipeNames = recipesUsingPackaging.map((rp) => rp.recipe.name)
+    console.log('[deletePackaging] Packaging in use by recipes:', recipeNames)
+    throw new Error(`PACKAGING_IN_USE:${recipeNames.join(',')}`)
+  }
+
+  // Delete the packaging material
+  await prisma.packagingMaterial.delete({
+    where: { id }
+  })
+
+  console.log('[deletePackaging] Packaging deleted successfully:', existingPackaging.name)
+}

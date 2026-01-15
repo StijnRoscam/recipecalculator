@@ -155,6 +155,14 @@
         "updateFailed": "Verpakking bijwerken mislukt",
         "loadFailed": "Verpakking laden mislukt"
       }
+    },
+    "delete": {
+      "confirmTitle": "Verpakking verwijderen?",
+      "confirmMessage": "Weet u zeker dat u \"{{name}}\" permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "success": "Verpakking succesvol verwijderd",
+      "error": "Verpakking verwijderen mislukt",
+      "notFoundError": "Verpakking niet gevonden",
+      "inUseError": "Deze verpakking kan niet worden verwijderd omdat deze wordt gebruikt in de volgende recepten: {{recipes}}. Overweeg om deze te archiveren."
     }
   }
 }
