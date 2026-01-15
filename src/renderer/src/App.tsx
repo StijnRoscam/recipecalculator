@@ -6,6 +6,7 @@ import { MaterialsPage } from './pages/MaterialsPage'
 import { CreateMaterialPage } from './pages/CreateMaterialPage'
 import { EditMaterialPage } from './pages/EditMaterialPage'
 import { PackagingPage } from './pages/PackagingPage'
+import { CreatePackagingPage } from './pages/CreatePackagingPage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('materials')
@@ -34,6 +35,18 @@ function App(): JSX.Element {
   const handleMaterialCancel = (): void => {
     setActivePage('materials')
     setEditMaterialId(null)
+  }
+
+  const handleCreatePackaging = (): void => {
+    setActivePage('packaging/new')
+  }
+
+  const handlePackagingSuccess = (): void => {
+    setActivePage('packaging')
+  }
+
+  const handlePackagingCancel = (): void => {
+    setActivePage('packaging')
   }
 
   return (
@@ -68,7 +81,15 @@ function App(): JSX.Element {
             onSuccess={handleMaterialSuccess}
           />
         )}
-        {activePage === 'packaging' && <PackagingPage />}
+        {activePage === 'packaging' && (
+          <PackagingPage onCreatePackaging={handleCreatePackaging} />
+        )}
+        {activePage === 'packaging/new' && (
+          <CreatePackagingPage
+            onCancel={handlePackagingCancel}
+            onSuccess={handlePackagingSuccess}
+          />
+        )}
       </main>
     </div>
   )

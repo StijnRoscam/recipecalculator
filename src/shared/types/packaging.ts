@@ -45,4 +45,5 @@ export interface UpdatePackagingInput {
  */
 export interface PackagingApi {
   getAll: (includeArchived: boolean) => Promise<PackagingMaterial[]>
+  create: (data: CreatePackagingInput) => Promise<PackagingMaterial>
 }
