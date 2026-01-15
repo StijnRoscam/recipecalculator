@@ -7,15 +7,18 @@ import { CreateMaterialPage } from './pages/CreateMaterialPage'
 import { EditMaterialPage } from './pages/EditMaterialPage'
 import { PackagingPage } from './pages/PackagingPage'
 import { CreatePackagingPage } from './pages/CreatePackagingPage'
+import { EditPackagingPage } from './pages/EditPackagingPage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('materials')
   const [editMaterialId, setEditMaterialId] = useState<string | null>(null)
+  const [editPackagingId, setEditPackagingId] = useState<string | null>(null)
   const { t } = useTranslation()
 
   const handleNavigate = (page: string): void => {
     setActivePage(page)
     setEditMaterialId(null)
+    setEditPackagingId(null)
   }
 
   const handleCreateMaterial = (): void => {
@@ -41,12 +44,19 @@ function App(): JSX.Element {
     setActivePage('packaging/new')
   }
 
+  const handleEditPackaging = (id: string): void => {
+    setEditPackagingId(id)
+    setActivePage('packaging/edit')
+  }
+
   const handlePackagingSuccess = (): void => {
     setActivePage('packaging')
+    setEditPackagingId(null)
   }
 
   const handlePackagingCancel = (): void => {
     setActivePage('packaging')
+    setEditPackagingId(null)
   }
 
   return (
@@ -82,10 +92,20 @@ function App(): JSX.Element {
           />
         )}
         {activePage === 'packaging' && (
-          <PackagingPage onCreatePackaging={handleCreatePackaging} />
+          <PackagingPage
+            onCreatePackaging={handleCreatePackaging}
+            onEditPackaging={handleEditPackaging}
+          />
         )}
         {activePage === 'packaging/new' && (
           <CreatePackagingPage
+            onCancel={handlePackagingCancel}
+            onSuccess={handlePackagingSuccess}
+          />
+        )}
+        {activePage === 'packaging/edit' && editPackagingId && (
+          <EditPackagingPage
+            packagingId={editPackagingId}
             onCancel={handlePackagingCancel}
             onSuccess={handlePackagingSuccess}
           />

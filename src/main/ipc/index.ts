@@ -8,8 +8,8 @@ import {
   unarchiveMaterial
 } from './materials'
 import type { CreateMaterialInput, UpdateMaterialInput } from './materials'
-import { getAllPackaging, createPackaging } from './packaging'
-import type { CreatePackagingInput } from './packaging'
+import { getAllPackaging, getPackaging, createPackaging, updatePackaging } from './packaging'
+import type { CreatePackagingInput, UpdatePackagingInput } from './packaging'
 
 /**
  * Registers all IPC handlers for the application.
@@ -114,6 +114,32 @@ export function registerIpcHandlers(): void {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[IPC] packaging:create failed: ${errorMessage}`)
       console.error('[IPC] Full error:', error)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('packaging:get', async (_event, id: string) => {
+    console.log('[IPC] packaging:get called with id:', id)
+    try {
+      const result = await getPackaging(id)
+      console.log('[IPC] packaging:get succeeded:', result ? result.id : 'not found')
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] packaging:get failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('packaging:update', async (_event, id: string, data: UpdatePackagingInput) => {
+    console.log('[IPC] packaging:update called with id:', id, 'data:', JSON.stringify(data, null, 2))
+    try {
+      const result = await updatePackaging(id, data)
+      console.log('[IPC] packaging:update succeeded:', result.id)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] packaging:update failed: ${errorMessage}`)
       throw new Error(errorMessage)
     }
   })

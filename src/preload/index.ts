@@ -5,7 +5,8 @@ import type {
   CreateMaterialInput,
   UpdateMaterialInput,
   PackagingMaterial,
-  CreatePackagingInput
+  CreatePackagingInput,
+  UpdatePackagingInput
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -24,8 +25,11 @@ const api = {
   packaging: {
     getAll: (includeArchived: boolean): Promise<PackagingMaterial[]> =>
       ipcRenderer.invoke('packaging:getAll', includeArchived),
+    get: (id: string): Promise<PackagingMaterial | null> => ipcRenderer.invoke('packaging:get', id),
     create: (data: CreatePackagingInput): Promise<PackagingMaterial> =>
-      ipcRenderer.invoke('packaging:create', data)
+      ipcRenderer.invoke('packaging:create', data),
+    update: (id: string, data: UpdatePackagingInput): Promise<PackagingMaterial> =>
+      ipcRenderer.invoke('packaging:update', id, data)
   }
 }
 
