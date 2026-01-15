@@ -145,6 +145,16 @@
         "duplicateName": "Er bestaat al een verpakking met deze naam",
         "createFailed": "Verpakking aanmaken mislukt"
       }
+    },
+    "edit": {
+      "title": "Verpakking Bewerken",
+      "success": "Verpakking succesvol bijgewerkt",
+      "errors": {
+        "notFound": "Verpakking niet gevonden",
+        "duplicateName": "Er bestaat al een verpakking met deze naam",
+        "updateFailed": "Verpakking bijwerken mislukt",
+        "loadFailed": "Verpakking laden mislukt"
+      }
     }
   }
 }

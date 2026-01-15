@@ -145,6 +145,16 @@
         "duplicateName": "A packaging material with this name already exists",
         "createFailed": "Failed to create packaging"
       }
+    },
+    "edit": {
+      "title": "Edit Packaging Material",
+      "success": "Packaging updated successfully",
+      "errors": {
+        "notFound": "Packaging material not found",
+        "duplicateName": "A packaging material with this name already exists",
+        "updateFailed": "Failed to update packaging",
+        "loadFailed": "Failed to load packaging material"
+      }
     }
   }
 }
