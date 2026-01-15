@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { PackagingMaterial } from '../../../shared/types'
 import { useDebounce } from '../hooks/useDebounce'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import './PackagingPage.css'
 
 interface PackagingPageProps {
@@ -21,6 +22,10 @@ export function PackagingPage({ onCreatePackaging, onEditPackaging }: PackagingP
   const [showArchived, setShowArchived] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [packagingToDelete, setPackagingToDelete] = useState<PackagingMaterial | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   useEffect(() => {
@@ -92,6 +97,54 @@ export function PackagingPage({ onCreatePackaging, onEditPackaging }: PackagingP
     setSearchTerm('')
   }
 
+  const handleDeleteClick = (item: PackagingMaterial): void => {
+    setPackagingToDelete(item)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteCancel = (): void => {
+    setDeleteDialogOpen(false)
+    setPackagingToDelete(null)
+  }
+
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!packagingToDelete) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+    try {
+      await window.api.packaging.delete(packagingToDelete.id)
+      setPackagingMaterials((prev) => prev.filter((p) => p.id !== packagingToDelete.id))
+      setSuccessMessage(t('packaging.delete.success'))
+      setDeleteDialogOpen(false)
+      setPackagingToDelete(null)
+
+      // Auto-dismiss success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      console.error('Failed to delete packaging material:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+
+      if (errorMessage.startsWith('PACKAGING_IN_USE:')) {
+        const recipeNames = errorMessage.replace('PACKAGING_IN_USE:', '').split(',')
+        setDeleteError(
+          t('packaging.delete.inUseError', {
+            recipes: recipeNames.join(', ')
+          })
+        )
+      } else if (errorMessage === 'NOT_FOUND') {
+        setDeleteError(t('packaging.delete.notFoundError'))
+      } else {
+        setDeleteError(t('packaging.delete.error'))
+      }
+
+      setDeleteDialogOpen(false)
+      setPackagingToDelete(null)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   // Check if we're showing "no search results" vs "empty state"
   const hasSearchTerm = debouncedSearchTerm.length > 0
   const hasNoSearchResults = hasSearchTerm && filteredPackaging.length === 0
@@ -113,6 +166,12 @@ export function PackagingPage({ onCreatePackaging, onEditPackaging }: PackagingP
       {successMessage && (
         <div className="success-message" role="status">
           {successMessage}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="error-message" role="alert">
+          {deleteError}
         </div>
       )}
 
@@ -268,8 +327,8 @@ export function PackagingPage({ onCreatePackaging, onEditPackaging }: PackagingP
                         <button
                           className="btn-icon btn-danger"
                           title={t('common.delete')}
-                          disabled
                           aria-label={t('common.delete')}
+                          onClick={() => handleDeleteClick(item)}
                         >
                           <svg
                             width="16"
@@ -296,6 +355,18 @@ export function PackagingPage({ onCreatePackaging, onEditPackaging }: PackagingP
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        title={t('packaging.delete.confirmTitle')}
+        message={t('packaging.delete.confirmMessage', { name: packagingToDelete?.name })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        isLoading={isDeleting}
+        variant="danger"
+      />
     </div>
   )
 }

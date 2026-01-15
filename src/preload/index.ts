@@ -29,7 +29,8 @@ const api = {
     create: (data: CreatePackagingInput): Promise<PackagingMaterial> =>
       ipcRenderer.invoke('packaging:create', data),
     update: (id: string, data: UpdatePackagingInput): Promise<PackagingMaterial> =>
-      ipcRenderer.invoke('packaging:update', id, data)
+      ipcRenderer.invoke('packaging:update', id, data),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('packaging:delete', id)
   }
 }
 

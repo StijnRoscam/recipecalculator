@@ -48,4 +48,5 @@ export interface PackagingApi {
   get: (id: string) => Promise<PackagingMaterial | null>
   create: (data: CreatePackagingInput) => Promise<PackagingMaterial>
   update: (id: string, data: UpdatePackagingInput) => Promise<PackagingMaterial>
+  delete: (id: string) => Promise<void>
 }
