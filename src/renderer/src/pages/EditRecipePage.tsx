@@ -623,7 +623,6 @@ export function EditRecipePage({
                 type="number"
                 step="0.01"
                 min="0"
-                max="100"
                 className="form-input"
                 {...register('profitMargin', {
                   setValueAs: (v) => (v === '' || v === null ? null : Number(v))

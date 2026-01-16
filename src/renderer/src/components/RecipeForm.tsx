@@ -33,7 +33,6 @@ export const recipeFormSchema = z.object({
   profitMargin: z
     .number({ invalid_type_error: 'validation.invalidNumber' })
     .min(0, 'validation.positiveNumber')
-    .max(100, 'recipes.create.errors.percentageMax')
     .nullable()
     .optional()
     .transform((val) => (val === undefined ? null : val)),
@@ -275,7 +274,6 @@ export function RecipeForm({
                 type="number"
                 step="0.01"
                 min="0"
-                max="100"
                 className={`form-input ${errors.profitMargin ? 'form-input-error' : ''}`}
                 placeholder={t('recipes.create.fields.profitMarginPlaceholder')}
                 {...register('profitMargin', {
