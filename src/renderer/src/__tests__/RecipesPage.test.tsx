@@ -1111,6 +1111,48 @@ describe('RecipesPage delete functionality', () => {
 
     vi.useRealTimers()
   })
+
+  it('closes delete dialog when Escape key is pressed', async () => {
+    vi.useFakeTimers()
+    mockGetAll.mockResolvedValue(mockRecipes.filter((r) => !r.isArchived))
+
+    await act(async () => {
+      render(
+        <I18nextProvider i18n={testI18n}>
+          <RecipesPage onCreateRecipe={mockOnCreateRecipe} />
+        </I18nextProvider>
+      )
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByText('Beef Stew')).toBeInTheDocument()
+
+    const deleteButtons = screen.getAllByTitle('Delete')
+    await act(async () => {
+      fireEvent.click(deleteButtons[0])
+    })
+
+    // Wait for dialog to appear
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.getByText('Delete Recipe?')).toBeInTheDocument()
+
+    // Press Escape to close the dialog
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'Escape' })
+      await vi.advanceTimersByTimeAsync(100)
+    })
+
+    expect(screen.queryByText('Delete Recipe?')).not.toBeInTheDocument()
+
+    // Recipe should still be there
+    expect(screen.getByText('Beef Stew')).toBeInTheDocument()
+    expect(mockDelete).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+  })
 })
 
 describe('RecipesPage translations', () => {
