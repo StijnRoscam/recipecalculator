@@ -868,6 +868,135 @@ describe('EditRecipePage', () => {
     })
   })
 
+  describe('ingredient reordering', () => {
+    it('displays drag handles on ingredient rows', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Check that drag handles are present (≡≡ character)
+      const dragHandles = screen.getAllByTitle('Drag to reorder')
+      expect(dragHandles.length).toBe(2) // Two ingredients in mock data
+    })
+
+    it('sets draggable attribute on ingredient rows', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Find the table rows containing ingredients
+      const beefRow = screen.getByText('Ground Beef').closest('tr')
+      expect(beefRow).toHaveAttribute('draggable', 'true')
+    })
+
+    it('applies dragging class when drag starts', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Find the row containing Ground Beef
+      const beefRow = screen.getByText('Ground Beef').closest('tr')
+      expect(beefRow).not.toHaveClass('dragging')
+
+      // Trigger drag start
+      fireEvent.dragStart(beefRow!)
+
+      // The row should now have the dragging class
+      expect(beefRow).toHaveClass('dragging')
+    })
+
+    it('calls reorder API when drag ends', async () => {
+      mockApi.ingredients.reorder.mockResolvedValue(undefined)
+
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Find the rows
+      const beefRow = screen.getByText('Ground Beef').closest('tr')
+      const breadcrumbsRow = screen.getByText('Breadcrumbs').closest('tr')
+
+      // Simulate drag start on beef row
+      fireEvent.dragStart(beefRow!)
+
+      // Simulate drag over breadcrumbs row (reordering)
+      fireEvent.dragOver(breadcrumbsRow!)
+
+      // Simulate drag end
+      fireEvent.dragEnd(beefRow!)
+
+      // Should call the reorder API
+      await waitFor(() => {
+        expect(mockApi.ingredients.reorder).toHaveBeenCalledWith(
+          '1', // recipeId
+          expect.any(Array) // ingredientIds
+        )
+      })
+    })
+
+    it('handles reorder API error gracefully', async () => {
+      // Mock API failure and recipe refetch
+      mockApi.ingredients.reorder.mockRejectedValue(new Error('Reorder failed'))
+      mockApi.recipes.get.mockResolvedValue(mockRecipe)
+
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Find the rows
+      const beefRow = screen.getByText('Ground Beef').closest('tr')
+      const breadcrumbsRow = screen.getByText('Breadcrumbs').closest('tr')
+
+      // Simulate drag operations
+      fireEvent.dragStart(beefRow!)
+      fireEvent.dragOver(breadcrumbsRow!)
+      fireEvent.dragEnd(beefRow!)
+
+      // Should attempt reorder and refetch on error
+      await waitFor(() => {
+        expect(mockApi.ingredients.reorder).toHaveBeenCalled()
+      })
+
+      // Recipe should be refetched to restore original order
+      await waitFor(() => {
+        // Initial load + error recovery refetch
+        expect(mockApi.recipes.get.mock.calls.length).toBeGreaterThan(1)
+      })
+    })
+
+    it('disables dragging when editing an ingredient', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Ground Beef')).toBeInTheDocument()
+      })
+
+      // Find and click edit button for first ingredient
+      const editButtons = screen.getAllByTitle('Edit')
+      fireEvent.click(editButtons[0])
+
+      // Wait for edit mode
+      await waitFor(() => {
+        const inlineInputs = screen.getAllByRole('spinbutton')
+        expect(inlineInputs.length).toBeGreaterThan(0)
+      })
+
+      // The row being edited should not be draggable
+      const beefRow = screen.getByText('Ground Beef').closest('tr')
+      expect(beefRow).toHaveAttribute('draggable', 'false')
+    })
+  })
+
   describe('translations', () => {
     it('shows Dutch translations', async () => {
       const testI18n = createTestI18n('nl')
