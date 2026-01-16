@@ -310,6 +310,7 @@
       "quantity": "Quantity",
       "unit": "Unit",
       "cost": "Cost",
+      "notes": "Notes",
       "percentOfTotal": "% of Total",
       "unitType": "Unit Type",
       "totalIngredientsCost": "Total Ingredients Cost",
