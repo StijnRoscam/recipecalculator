@@ -128,3 +128,85 @@ export interface RecipesApi {
   duplicate: (id: string) => Promise<Recipe>
   delete: (id: string) => Promise<void>
 }
+
+/**
+ * Recipe ingredient returned from API operations.
+ */
+export interface RecipeIngredient {
+  id: string
+  recipeId: string
+  materialId: string
+  quantity: number
+  unit: string
+  sortOrder: number
+  notes: string | null
+}
+
+/**
+ * Input for adding an ingredient to a recipe.
+ */
+export interface AddIngredientInput {
+  recipeId: string
+  materialId: string
+  quantity: number
+  unit: 'kg' | 'g'
+  notes?: string | null
+}
+
+/**
+ * Input for updating an ingredient.
+ */
+export interface UpdateIngredientInput {
+  quantity?: number
+  unit?: 'kg' | 'g'
+  notes?: string | null
+}
+
+/**
+ * Ingredients API interface exposed to the renderer process.
+ */
+export interface IngredientsApi {
+  add: (data: AddIngredientInput) => Promise<RecipeIngredient>
+  update: (id: string, data: UpdateIngredientInput) => Promise<RecipeIngredient>
+  remove: (id: string) => Promise<void>
+  reorder: (recipeId: string, ingredientIds: string[]) => Promise<void>
+}
+
+/**
+ * Recipe packaging returned from API operations.
+ */
+export interface RecipePackagingItem {
+  id: string
+  recipeId: string
+  packagingMaterialId: string
+  quantity: number
+  sortOrder: number
+  notes: string | null
+}
+
+/**
+ * Input for adding packaging to a recipe.
+ */
+export interface AddRecipePackagingInput {
+  recipeId: string
+  packagingMaterialId: string
+  quantity: number
+  notes?: string | null
+}
+
+/**
+ * Input for updating recipe packaging.
+ */
+export interface UpdateRecipePackagingInput {
+  quantity?: number
+  notes?: string | null
+}
+
+/**
+ * Recipe Packaging API interface exposed to the renderer process.
+ */
+export interface RecipePackagingApi {
+  add: (data: AddRecipePackagingInput) => Promise<RecipePackagingItem>
+  update: (id: string, data: UpdateRecipePackagingInput) => Promise<RecipePackagingItem>
+  remove: (id: string) => Promise<void>
+}

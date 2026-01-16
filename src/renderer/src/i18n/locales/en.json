@@ -241,6 +241,37 @@
         "duplicateName": "A recipe with this name already exists",
         "updateFailed": "Failed to update recipe",
         "loadFailed": "Failed to load recipe"
+      },
+      "ingredients": {
+        "add": "Add Ingredient",
+        "addTitle": "Add Ingredient",
+        "selectMaterial": "Material",
+        "selectPlaceholder": "Select a material...",
+        "dragToReorder": "Drag to reorder",
+        "errors": {
+          "selectMaterial": "Please select a material",
+          "invalidQuantity": "Please enter a valid quantity",
+          "alreadyExists": "This ingredient is already in the recipe",
+          "addFailed": "Failed to add ingredient"
+        }
+      },
+      "packaging": {
+        "add": "Add Packaging",
+        "addTitle": "Add Packaging",
+        "selectPackaging": "Packaging Material",
+        "selectPlaceholder": "Select a packaging material...",
+        "errors": {
+          "selectPackaging": "Please select a packaging material",
+          "invalidQuantity": "Please enter a valid quantity",
+          "alreadyExists": "This packaging is already in the recipe",
+          "addFailed": "Failed to add packaging"
+        }
+      },
+      "cancelConfirm": {
+        "title": "Discard Changes?",
+        "message": "You have unsaved changes. Are you sure you want to discard them?",
+        "discard": "Discard",
+        "keepEditing": "Keep Editing"
       }
     },
     "view": {

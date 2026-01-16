@@ -11,6 +11,7 @@ import { EditPackagingPage } from './pages/EditPackagingPage'
 import { RecipesPage } from './pages/RecipesPage'
 import { CreateRecipePage } from './pages/CreateRecipePage'
 import { ViewRecipePage } from './pages/ViewRecipePage'
+import { EditRecipePage } from './pages/EditRecipePage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('recipes')
@@ -81,18 +82,22 @@ function App(): JSX.Element {
   }
 
   const handleRecipeSuccess = (recipeId?: string): void => {
-    // If recipeId is provided (from create), redirect to edit page
-    // Once edit page is implemented, this will navigate to recipes/edit
+    // If recipeId is provided (from create), redirect to view page
     if (recipeId) {
-      // For now, redirect to recipes list until edit page is implemented
-      // TODO: Change to setEditRecipeId(recipeId) and setActivePage('recipes/edit') once US-4.4 is done
-      setActivePage('recipes')
-      setViewRecipeId(null)
+      setViewRecipeId(recipeId)
+      setActivePage('recipes/view')
       setEditRecipeId(null)
     } else {
-      setActivePage('recipes')
-      setViewRecipeId(null)
-      setEditRecipeId(null)
+      // Coming from edit page, go back to view
+      if (editRecipeId) {
+        setViewRecipeId(editRecipeId)
+        setActivePage('recipes/view')
+        setEditRecipeId(null)
+      } else {
+        setActivePage('recipes')
+        setViewRecipeId(null)
+        setEditRecipeId(null)
+      }
     }
   }
 
@@ -171,6 +176,13 @@ function App(): JSX.Element {
             recipeId={viewRecipeId}
             onBack={handleRecipeCancel}
             onEdit={() => handleEditRecipe(viewRecipeId)}
+          />
+        )}
+        {activePage === 'recipes/edit' && editRecipeId && (
+          <EditRecipePage
+            recipeId={editRecipeId}
+            onCancel={handleRecipeCancel}
+            onSuccess={handleRecipeSuccess}
           />
         )}
       </main>

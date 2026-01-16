@@ -411,3 +411,307 @@ export async function deleteRecipe(id: string): Promise<void> {
     where: { id }
   })
 }
+
+// ========================================
+// Recipe Ingredient Management
+// ========================================
+
+export interface AddIngredientInput {
+  recipeId: string
+  materialId: string
+  quantity: number
+  unit: 'kg' | 'g'
+  notes?: string | null
+}
+
+export interface UpdateIngredientInput {
+  quantity?: number
+  unit?: 'kg' | 'g'
+  notes?: string | null
+}
+
+export interface RecipeIngredient {
+  id: string
+  recipeId: string
+  materialId: string
+  quantity: number
+  unit: string
+  sortOrder: number
+  notes: string | null
+}
+
+/**
+ * Add an ingredient to a recipe.
+ */
+export async function addIngredient(data: AddIngredientInput): Promise<RecipeIngredient> {
+  const prisma = getPrisma()
+
+  // Verify the recipe exists
+  const recipe = await prisma.recipe.findUnique({
+    where: { id: data.recipeId }
+  })
+
+  if (!recipe) {
+    throw new Error('RECIPE_NOT_FOUND')
+  }
+
+  // Verify the material exists
+  const material = await prisma.sourceMaterial.findUnique({
+    where: { id: data.materialId }
+  })
+
+  if (!material) {
+    throw new Error('MATERIAL_NOT_FOUND')
+  }
+
+  // Check if the material is already in the recipe
+  const existingIngredient = await prisma.recipeIngredient.findUnique({
+    where: {
+      recipeId_materialId: {
+        recipeId: data.recipeId,
+        materialId: data.materialId
+      }
+    }
+  })
+
+  if (existingIngredient) {
+    throw new Error('INGREDIENT_ALREADY_EXISTS')
+  }
+
+  // Get the current max sortOrder
+  const maxSortOrderResult = await prisma.recipeIngredient.findFirst({
+    where: { recipeId: data.recipeId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true }
+  })
+
+  const newSortOrder = (maxSortOrderResult?.sortOrder ?? -1) + 1
+
+  return prisma.recipeIngredient.create({
+    data: {
+      recipeId: data.recipeId,
+      materialId: data.materialId,
+      quantity: data.quantity,
+      unit: data.unit,
+      sortOrder: newSortOrder,
+      notes: data.notes || null
+    }
+  })
+}
+
+/**
+ * Update an ingredient in a recipe.
+ */
+export async function updateIngredient(
+  id: string,
+  data: UpdateIngredientInput
+): Promise<RecipeIngredient> {
+  const prisma = getPrisma()
+
+  const ingredient = await prisma.recipeIngredient.findUnique({
+    where: { id }
+  })
+
+  if (!ingredient) {
+    throw new Error('NOT_FOUND')
+  }
+
+  return prisma.recipeIngredient.update({
+    where: { id },
+    data: {
+      quantity: data.quantity ?? ingredient.quantity,
+      unit: data.unit ?? ingredient.unit,
+      notes: data.notes !== undefined ? data.notes : ingredient.notes
+    }
+  })
+}
+
+/**
+ * Remove an ingredient from a recipe.
+ */
+export async function removeIngredient(id: string): Promise<void> {
+  const prisma = getPrisma()
+
+  const ingredient = await prisma.recipeIngredient.findUnique({
+    where: { id }
+  })
+
+  if (!ingredient) {
+    throw new Error('NOT_FOUND')
+  }
+
+  await prisma.recipeIngredient.delete({
+    where: { id }
+  })
+
+  // Reorder remaining ingredients to fill the gap
+  await prisma.$executeRaw`
+    UPDATE recipe_ingredients
+    SET sort_order = sort_order - 1
+    WHERE recipe_id = ${ingredient.recipeId} AND sort_order > ${ingredient.sortOrder}
+  `
+}
+
+/**
+ * Reorder ingredients in a recipe.
+ */
+export async function reorderIngredients(
+  recipeId: string,
+  ingredientIds: string[]
+): Promise<void> {
+  const prisma = getPrisma()
+
+  // Verify the recipe exists
+  const recipe = await prisma.recipe.findUnique({
+    where: { id: recipeId }
+  })
+
+  if (!recipe) {
+    throw new Error('RECIPE_NOT_FOUND')
+  }
+
+  // Update sort orders in a transaction
+  await prisma.$transaction(
+    ingredientIds.map((id, index) =>
+      prisma.recipeIngredient.update({
+        where: { id },
+        data: { sortOrder: index }
+      })
+    )
+  )
+}
+
+// ========================================
+// Recipe Packaging Management
+// ========================================
+
+export interface AddPackagingInput {
+  recipeId: string
+  packagingMaterialId: string
+  quantity: number
+  notes?: string | null
+}
+
+export interface UpdatePackagingInput {
+  quantity?: number
+  notes?: string | null
+}
+
+export interface RecipePackaging {
+  id: string
+  recipeId: string
+  packagingMaterialId: string
+  quantity: number
+  sortOrder: number
+  notes: string | null
+}
+
+/**
+ * Add packaging to a recipe.
+ */
+export async function addPackaging(data: AddPackagingInput): Promise<RecipePackaging> {
+  const prisma = getPrisma()
+
+  // Verify the recipe exists
+  const recipe = await prisma.recipe.findUnique({
+    where: { id: data.recipeId }
+  })
+
+  if (!recipe) {
+    throw new Error('RECIPE_NOT_FOUND')
+  }
+
+  // Verify the packaging material exists
+  const packagingMaterial = await prisma.packagingMaterial.findUnique({
+    where: { id: data.packagingMaterialId }
+  })
+
+  if (!packagingMaterial) {
+    throw new Error('PACKAGING_NOT_FOUND')
+  }
+
+  // Check if the packaging material is already in the recipe
+  const existingPackaging = await prisma.recipePackaging.findUnique({
+    where: {
+      recipeId_packagingMaterialId: {
+        recipeId: data.recipeId,
+        packagingMaterialId: data.packagingMaterialId
+      }
+    }
+  })
+
+  if (existingPackaging) {
+    throw new Error('PACKAGING_ALREADY_EXISTS')
+  }
+
+  // Get the current max sortOrder
+  const maxSortOrderResult = await prisma.recipePackaging.findFirst({
+    where: { recipeId: data.recipeId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true }
+  })
+
+  const newSortOrder = (maxSortOrderResult?.sortOrder ?? -1) + 1
+
+  return prisma.recipePackaging.create({
+    data: {
+      recipeId: data.recipeId,
+      packagingMaterialId: data.packagingMaterialId,
+      quantity: data.quantity,
+      sortOrder: newSortOrder,
+      notes: data.notes || null
+    }
+  })
+}
+
+/**
+ * Update packaging in a recipe.
+ */
+export async function updatePackaging(
+  id: string,
+  data: UpdatePackagingInput
+): Promise<RecipePackaging> {
+  const prisma = getPrisma()
+
+  const packaging = await prisma.recipePackaging.findUnique({
+    where: { id }
+  })
+
+  if (!packaging) {
+    throw new Error('NOT_FOUND')
+  }
+
+  return prisma.recipePackaging.update({
+    where: { id },
+    data: {
+      quantity: data.quantity ?? packaging.quantity,
+      notes: data.notes !== undefined ? data.notes : packaging.notes
+    }
+  })
+}
+
+/**
+ * Remove packaging from a recipe.
+ */
+export async function removePackaging(id: string): Promise<void> {
+  const prisma = getPrisma()
+
+  const packaging = await prisma.recipePackaging.findUnique({
+    where: { id }
+  })
+
+  if (!packaging) {
+    throw new Error('NOT_FOUND')
+  }
+
+  await prisma.recipePackaging.delete({
+    where: { id }
+  })
+
+  // Reorder remaining packaging to fill the gap
+  await prisma.$executeRaw`
+    UPDATE recipe_packaging
+    SET sort_order = sort_order - 1
+    WHERE recipe_id = ${packaging.recipeId} AND sort_order > ${packaging.sortOrder}
+  `
+}
