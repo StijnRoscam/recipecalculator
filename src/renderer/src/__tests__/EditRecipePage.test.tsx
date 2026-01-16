@@ -347,12 +347,18 @@ describe('EditRecipePage', () => {
       fireEvent.click(screen.getByText('Add Ingredient'))
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Material/i)).toBeInTheDocument()
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
       })
 
-      // Select the new material (Salt)
-      const select = screen.getByLabelText(/Material/i) as HTMLSelectElement
-      fireEvent.change(select, { target: { value: 'mat3' } })
+      // Type to search for Salt and select from dropdown
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.focus(searchInput)
+
+      // Wait for dropdown to appear and click on Salt
+      await waitFor(() => {
+        expect(screen.getByText('Salt')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByText('Salt'))
 
       // Set quantity
       const quantityInput = screen.getByLabelText(/^Quantity/i) as HTMLInputElement
@@ -455,12 +461,18 @@ describe('EditRecipePage', () => {
       fireEvent.click(screen.getByText('Add Ingredient'))
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Material/i)).toBeInTheDocument()
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
       })
 
-      // Select the new material (Salt)
-      const select = screen.getByLabelText(/Material/i) as HTMLSelectElement
-      fireEvent.change(select, { target: { value: 'mat3' } })
+      // Type to search for Salt and select from dropdown
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.focus(searchInput)
+
+      // Wait for dropdown to appear and click on Salt
+      await waitFor(() => {
+        expect(screen.getByText('Salt')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByText('Salt'))
 
       // Set quantity
       const quantityInput = screen.getByLabelText(/^Quantity/i) as HTMLInputElement
@@ -503,19 +515,21 @@ describe('EditRecipePage', () => {
         expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
       })
 
-      // Initially Salt should be visible (it's the only non-added material)
-      const materialSelect = screen.getByLabelText(/Material/i) as HTMLSelectElement
-      expect(materialSelect.options.length).toBe(2) // placeholder + Salt
-
-      // Type search term - debounce will apply after 300ms
+      // Focus on search input to open dropdown
       const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.focus(searchInput)
+
+      // Initially Salt should be visible in dropdown (it's the only non-added material)
+      await waitFor(() => {
+        expect(screen.getByText('Salt')).toBeInTheDocument()
+      })
+
+      // Type search term with different case - debounce will apply after 300ms
       fireEvent.change(searchInput, { target: { value: 'SALT' } })
 
-      // Wait for debounce to apply (300ms + buffer)
+      // Wait for debounce to apply - Salt should still be visible (case-insensitive match)
       await waitFor(() => {
-        const updatedSelect = screen.getByLabelText(/Material/i) as HTMLSelectElement
-        // Salt should still be visible (case-insensitive match)
-        expect(updatedSelect.options.length).toBe(2) // placeholder + Salt
+        expect(screen.getByText('Salt')).toBeInTheDocument()
       }, { timeout: 1000 })
     })
 
@@ -584,11 +598,12 @@ describe('EditRecipePage', () => {
         expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
       })
 
-      // Type a search term
+      // Type a search term (which opens the dropdown)
       const searchInput = screen.getByPlaceholderText('Search materials...')
       fireEvent.change(searchInput, { target: { value: 'test' } })
 
-      // Press Escape
+      // First Escape closes the dropdown, second Escape clears the search
+      fireEvent.keyDown(searchInput, { key: 'Escape' })
       fireEvent.keyDown(searchInput, { key: 'Escape' })
 
       // Search should be cleared

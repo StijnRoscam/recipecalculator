@@ -22,7 +22,7 @@ interface AddIngredientDialogProps {
 
 /**
  * A dialog component for adding an ingredient to a recipe.
- * Includes searchable material list, quantity/unit selection, and optional notes.
+ * Features a searchable dropdown for material selection, quantity/unit fields, and optional notes.
  */
 export function AddIngredientDialog({
   isOpen,
@@ -35,14 +35,19 @@ export function AddIngredientDialog({
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Form state
   const [search, setSearch] = useState('')
-  const [selectedMaterialId, setSelectedMaterialId] = useState('')
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null)
   const [quantity, setQuantity] = useState('1')
   const [unit, setUnit] = useState<'kg' | 'g'>('kg')
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
+
+  // Dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
   const debouncedSearch = useDebounce(search, 300)
 
@@ -78,7 +83,9 @@ export function AddIngredientDialog({
 
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && !isLoading) {
-        if (search) {
+        if (isDropdownOpen) {
+          setIsDropdownOpen(false)
+        } else if (search && !selectedMaterial) {
           setSearch('')
         } else {
           handleCancel()
@@ -88,7 +95,7 @@ export function AddIngredientDialog({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, isLoading, search])
+  }, [isOpen, isLoading, search, isDropdownOpen, selectedMaterial])
 
   // Prevent body scroll when dialog is open
   useEffect(() => {
@@ -106,13 +113,39 @@ export function AddIngredientDialog({
   useEffect(() => {
     if (!isOpen) {
       setSearch('')
-      setSelectedMaterialId('')
+      setSelectedMaterial(null)
       setQuantity('1')
       setUnit('kg')
       setNotes('')
       setError(null)
+      setIsDropdownOpen(false)
+      setHighlightedIndex(-1)
     }
   }, [isOpen])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!isDropdownOpen) return
+
+    const handleClickOutside = (e: MouseEvent): void => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isDropdownOpen])
+
+  // Reset highlighted index when filtered materials change
+  useEffect(() => {
+    setHighlightedIndex(-1)
+  }, [filteredMaterials])
 
   const handleCancel = (): void => {
     if (!isLoading) {
@@ -124,7 +157,7 @@ export function AddIngredientDialog({
     e.preventDefault()
 
     // Validate material selection
-    if (!selectedMaterialId) {
+    if (!selectedMaterial) {
       setError(t('recipes.edit.ingredients.errors.selectMaterial'))
       return
     }
@@ -138,7 +171,7 @@ export function AddIngredientDialog({
 
     setError(null)
     onConfirm({
-      materialId: selectedMaterialId,
+      materialId: selectedMaterial.id,
       quantity: parsedQuantity,
       unit,
       notes: notes.trim() || null
@@ -152,21 +185,58 @@ export function AddIngredientDialog({
   }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearch(e.target.value)
-    // Clear selection if search changes
-    setSelectedMaterialId('')
+    const value = e.target.value
+    setSearch(value)
+    setSelectedMaterial(null)
     setError(null)
+    setIsDropdownOpen(true)
+  }
+
+  const handleSearchFocus = (): void => {
+    setIsDropdownOpen(true)
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Escape' && search) {
-      e.stopPropagation()
-      setSearch('')
+    if (e.key === 'Escape') {
+      if (isDropdownOpen) {
+        e.stopPropagation()
+        setIsDropdownOpen(false)
+      } else if (search && !selectedMaterial) {
+        e.stopPropagation()
+        setSearch('')
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (!isDropdownOpen) {
+        setIsDropdownOpen(true)
+      } else {
+        setHighlightedIndex((prev) =>
+          prev < filteredMaterials.length - 1 ? prev + 1 : prev
+        )
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+    } else if (e.key === 'Enter' && isDropdownOpen && highlightedIndex >= 0) {
+      e.preventDefault()
+      const material = filteredMaterials[highlightedIndex]
+      if (material) {
+        handleSelectMaterial(material)
+      }
     }
   }
 
-  const handleClearSearch = (): void => {
+  const handleSelectMaterial = (material: Material): void => {
+    setSelectedMaterial(material)
+    setSearch(material.name)
+    setIsDropdownOpen(false)
+    setError(null)
+  }
+
+  const handleClearSelection = (): void => {
+    setSelectedMaterial(null)
     setSearch('')
+    setError(null)
     searchInputRef.current?.focus()
   }
 
@@ -176,7 +246,7 @@ export function AddIngredientDialog({
     return null
   }
 
-  const hasNoResults = filteredMaterials.length === 0 && debouncedSearch.length > 0
+  const hasNoResults = filteredMaterials.length === 0 && debouncedSearch.length > 0 && !selectedMaterial
 
   return (
     <div
@@ -198,68 +268,85 @@ export function AddIngredientDialog({
             </div>
           )}
 
-          {/* Search Input */}
+          {/* Searchable Material Dropdown */}
           <div className="add-ingredient-dialog-field">
-            <label htmlFor="ingredient-search" className="add-ingredient-dialog-label">
-              {t('common.search')}
-            </label>
-            <div className="add-ingredient-dialog-search-wrapper">
-              <input
-                ref={searchInputRef}
-                id="ingredient-search"
-                type="text"
-                className="add-ingredient-dialog-input"
-                placeholder={t('recipes.edit.ingredients.searchPlaceholder')}
-                value={search}
-                onChange={handleSearchChange}
-                onKeyDown={handleSearchKeyDown}
-                disabled={isLoading}
-                autoComplete="off"
-              />
-              {search && (
-                <button
-                  type="button"
-                  className="add-ingredient-dialog-search-clear"
-                  onClick={handleClearSearch}
-                  title={t('recipes.edit.ingredients.clearSearch')}
-                  aria-label={t('recipes.edit.ingredients.clearSearch')}
-                  disabled={isLoading}
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Material Selection */}
-          <div className="add-ingredient-dialog-field">
-            <label htmlFor="material-select" className="add-ingredient-dialog-label">
+            <label htmlFor="material-search" className="add-ingredient-dialog-label">
               {t('recipes.edit.ingredients.selectMaterial')}
               <span className="required"> *</span>
             </label>
-            {hasNoResults ? (
-              <p className="add-ingredient-dialog-no-results">
-                {t('recipes.edit.ingredients.searchNoResults')}
-              </p>
-            ) : (
-              <select
-                id="material-select"
-                className="add-ingredient-dialog-select"
-                value={selectedMaterialId}
-                onChange={(e) => {
-                  setSelectedMaterialId(e.target.value)
-                  setError(null)
-                }}
-                disabled={isLoading}
-              >
-                <option value="">{t('recipes.edit.ingredients.selectPlaceholder')}</option>
-                {filteredMaterials.map((mat) => (
-                  <option key={mat.id} value={mat.id}>
-                    {mat.name} ({formatPrice(mat.currentPrice)}/{mat.unitOfMeasure})
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="add-ingredient-dialog-searchable-select">
+              <div className="add-ingredient-dialog-search-wrapper">
+                <input
+                  ref={searchInputRef}
+                  id="material-search"
+                  type="text"
+                  className={`add-ingredient-dialog-input ${selectedMaterial ? 'has-selection' : ''}`}
+                  placeholder={t('recipes.edit.ingredients.searchPlaceholder')}
+                  value={search}
+                  onChange={handleSearchChange}
+                  onFocus={handleSearchFocus}
+                  onKeyDown={handleSearchKeyDown}
+                  disabled={isLoading}
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={isDropdownOpen}
+                  aria-haspopup="listbox"
+                  aria-controls="material-listbox"
+                />
+                {(search || selectedMaterial) && (
+                  <button
+                    type="button"
+                    className="add-ingredient-dialog-search-clear"
+                    onClick={handleClearSelection}
+                    title={t('recipes.edit.ingredients.clearSearch')}
+                    aria-label={t('recipes.edit.ingredients.clearSearch')}
+                    disabled={isLoading}
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+
+              {/* Dropdown List */}
+              {isDropdownOpen && !selectedMaterial && (
+                <div
+                  ref={dropdownRef}
+                  id="material-listbox"
+                  className="add-ingredient-dialog-dropdown"
+                  role="listbox"
+                >
+                  {hasNoResults ? (
+                    <div className="add-ingredient-dialog-dropdown-empty">
+                      {t('recipes.edit.ingredients.searchNoResults')}
+                    </div>
+                  ) : filteredMaterials.length === 0 ? (
+                    <div className="add-ingredient-dialog-dropdown-empty">
+                      {t('recipes.edit.ingredients.noMaterialsAvailable')}
+                    </div>
+                  ) : (
+                    filteredMaterials.map((material, index) => (
+                      <div
+                        key={material.id}
+                        className={`add-ingredient-dialog-dropdown-item ${
+                          index === highlightedIndex ? 'highlighted' : ''
+                        }`}
+                        onClick={() => handleSelectMaterial(material)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        role="option"
+                        aria-selected={index === highlightedIndex}
+                      >
+                        <span className="add-ingredient-dialog-dropdown-item-name">
+                          {material.name}
+                        </span>
+                        <span className="add-ingredient-dialog-dropdown-item-price">
+                          {formatPrice(material.currentPrice)}/{material.unitOfMeasure}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Quantity and Unit */}
@@ -330,7 +417,7 @@ export function AddIngredientDialog({
             <button
               type="submit"
               className="btn-primary"
-              disabled={isLoading || !selectedMaterialId}
+              disabled={isLoading || !selectedMaterial}
             >
               {isLoading ? (
                 <>

@@ -261,6 +261,7 @@
         "selectPlaceholder": "Select a material...",
         "searchPlaceholder": "Search materials...",
         "searchNoResults": "No materials match your search",
+        "noMaterialsAvailable": "No materials available",
         "clearSearch": "Clear search",
         "notes": "Notes",
         "notesPlaceholder": "Add notes about this ingredient (optional)",

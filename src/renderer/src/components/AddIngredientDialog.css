@@ -199,7 +199,71 @@
   opacity: 0.6;
 }
 
-/* No results message */
+/* Searchable select container */
+.add-ingredient-dialog-searchable-select {
+  position: relative;
+}
+
+/* Input with selection */
+.add-ingredient-dialog-input.has-selection {
+  border-color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+/* Dropdown list */
+.add-ingredient-dialog-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background-color: #16213e;
+  border: 1px solid #1a4a7a;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.add-ingredient-dialog-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid #0f3460;
+}
+
+.add-ingredient-dialog-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.add-ingredient-dialog-dropdown-item:hover,
+.add-ingredient-dialog-dropdown-item.highlighted {
+  background-color: #0f3460;
+}
+
+.add-ingredient-dialog-dropdown-item-name {
+  color: #eaeaea;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.add-ingredient-dialog-dropdown-item-price {
+  color: #94a3b8;
+  font-size: 0.8125rem;
+}
+
+.add-ingredient-dialog-dropdown-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+/* No results message (legacy, keep for compatibility) */
 .add-ingredient-dialog-no-results {
   padding: 1rem;
   text-align: center;
