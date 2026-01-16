@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { AddIngredientDialog, type AddIngredientResult } from '../components/AddIngredientDialog'
 import { recipeFormSchema, type RecipeFormData } from '../components/RecipeForm'
-import { useDebounce } from '../hooks/useDebounce'
 import type {
   RecipeWithFullDetails,
   RecipeIngredientWithMaterial,
@@ -73,13 +73,7 @@ export function EditRecipePage({
 
   // Add ingredient modal
   const [showAddIngredient, setShowAddIngredient] = useState(false)
-  const [selectedMaterialId, setSelectedMaterialId] = useState<string>('')
-  const [ingredientQuantity, setIngredientQuantity] = useState<string>('1')
-  const [ingredientUnit, setIngredientUnit] = useState<'kg' | 'g'>('kg')
-  const [ingredientNotes, setIngredientNotes] = useState<string>('')
-  const [ingredientSearch, setIngredientSearch] = useState<string>('')
-  const [addIngredientError, setAddIngredientError] = useState<string | null>(null)
-  const debouncedIngredientSearch = useDebounce(ingredientSearch, 300)
+  const [isAddingIngredient, setIsAddingIngredient] = useState(false)
 
   // Add packaging modal
   const [showAddPackaging, setShowAddPackaging] = useState(false)
@@ -238,25 +232,16 @@ export function EditRecipePage({
   }
 
   // Ingredient Management
-  const handleAddIngredient = async (): Promise<void> => {
-    if (!selectedMaterialId) {
-      setAddIngredientError(t('recipes.edit.ingredients.errors.selectMaterial'))
-      return
-    }
-
-    const quantity = parseFloat(ingredientQuantity)
-    if (isNaN(quantity) || quantity <= 0) {
-      setAddIngredientError(t('recipes.edit.ingredients.errors.invalidQuantity'))
-      return
-    }
+  const handleAddIngredient = async (result: AddIngredientResult): Promise<void> => {
+    setIsAddingIngredient(true)
 
     try {
       await window.api.ingredients.add({
         recipeId,
-        materialId: selectedMaterialId,
-        quantity,
-        unit: ingredientUnit,
-        notes: ingredientNotes.trim() || null
+        materialId: result.materialId,
+        quantity: result.quantity,
+        unit: result.unit,
+        notes: result.notes
       })
 
       const updatedRecipe = await window.api.recipes.get(recipeId)
@@ -264,21 +249,14 @@ export function EditRecipePage({
         setIngredients(updatedRecipe.ingredients)
       }
 
-      setSelectedMaterialId('')
-      setIngredientQuantity('1')
-      setIngredientUnit('kg')
-      setIngredientNotes('')
-      setIngredientSearch('')
-      setAddIngredientError(null)
       setShowAddIngredient(false)
       setHasUnsavedChanges(true)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : ''
-      if (errorMessage === 'INGREDIENT_ALREADY_EXISTS') {
-        setAddIngredientError(t('recipes.edit.ingredients.errors.alreadyExists'))
-      } else {
-        setAddIngredientError(t('recipes.edit.ingredients.errors.addFailed'))
-      }
+      console.error('Failed to add ingredient:', error)
+      // Error handling is done in the dialog via the loading state
+      // The dialog will show error if API throws
+    } finally {
+      setIsAddingIngredient(false)
     }
   }
 
@@ -441,24 +419,10 @@ export function EditRecipePage({
     }
   }
 
-  // Filtered materials/packaging (exclude already added and apply search)
-  const availableMaterialsFiltered = useMemo(() => {
-    const searchLower = debouncedIngredientSearch.toLowerCase().trim()
-    return availableMaterials.filter((mat) => {
-      // Exclude already added materials
-      if (ingredients.some((ing) => ing.materialId === mat.id)) {
-        return false
-      }
-      // Apply search filter if there's a search term
-      if (searchLower) {
-        return (
-          mat.name.toLowerCase().includes(searchLower) ||
-          (mat.supplier && mat.supplier.toLowerCase().includes(searchLower))
-        )
-      }
-      return true
-    })
-  }, [availableMaterials, ingredients, debouncedIngredientSearch])
+  // Get existing material IDs to filter out in the dialog
+  const existingMaterialIds = useMemo(() => {
+    return ingredients.map((ing) => ing.materialId)
+  }, [ingredients])
 
   const availablePackagingFiltered = availablePackaging.filter(
     (pkg) => !packaging.some((p) => p.packagingMaterialId === pkg.id)
@@ -710,7 +674,7 @@ export function EditRecipePage({
               type="button"
               className="btn-secondary btn-small"
               onClick={() => setShowAddIngredient(true)}
-              disabled={availableMaterialsFiltered.length === 0}
+              disabled={availableMaterials.length === existingMaterialIds.length}
             >
               {t('recipes.edit.ingredients.add')}
             </button>
@@ -918,150 +882,15 @@ export function EditRecipePage({
         </div>
       </form>
 
-      {/* Add Ingredient Modal */}
-      {showAddIngredient && (
-        <div className="modal-overlay">
-          <div
-            className="modal"
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                if (ingredientSearch) {
-                  setIngredientSearch('')
-                } else {
-                  setShowAddIngredient(false)
-                  setAddIngredientError(null)
-                  setSelectedMaterialId('')
-                  setIngredientQuantity('1')
-                  setIngredientUnit('kg')
-                  setIngredientNotes('')
-                  setIngredientSearch('')
-                }
-              }
-            }}
-          >
-            <h3 className="modal-title">{t('recipes.edit.ingredients.addTitle')}</h3>
-
-            {addIngredientError && (
-              <div className="server-error" role="alert">{addIngredientError}</div>
-            )}
-
-            {/* Search Input */}
-            <div className="form-group">
-              <label htmlFor="ingredient-search" className="form-label">{t('common.search')}</label>
-              <div className="search-input-wrapper">
-                <input
-                  id="ingredient-search"
-                  type="text"
-                  className="form-input"
-                  placeholder={t('recipes.edit.ingredients.searchPlaceholder')}
-                  value={ingredientSearch}
-                  onChange={(e) => setIngredientSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape' && ingredientSearch) {
-                      e.stopPropagation()
-                      setIngredientSearch('')
-                    }
-                  }}
-                  autoFocus
-                />
-                {ingredientSearch && (
-                  <button
-                    type="button"
-                    className="search-clear-btn"
-                    onClick={() => setIngredientSearch('')}
-                    title={t('recipes.edit.ingredients.clearSearch')}
-                    aria-label={t('recipes.edit.ingredients.clearSearch')}
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="material-select" className="form-label">{t('recipes.edit.ingredients.selectMaterial')}</label>
-              {availableMaterialsFiltered.length === 0 && debouncedIngredientSearch ? (
-                <p className="search-no-results">{t('recipes.edit.ingredients.searchNoResults')}</p>
-              ) : (
-                <select
-                  id="material-select"
-                  className="form-input form-select"
-                  value={selectedMaterialId}
-                  onChange={(e) => setSelectedMaterialId(e.target.value)}
-                >
-                  <option value="">{t('recipes.edit.ingredients.selectPlaceholder')}</option>
-                  {availableMaterialsFiltered.map((mat) => (
-                    <option key={mat.id} value={mat.id}>
-                      {mat.name} ({formatPrice(mat.currentPrice)}/{mat.unitOfMeasure})
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="ingredient-quantity" className="form-label">{t('recipes.view.quantity')}</label>
-                <input
-                  id="ingredient-quantity"
-                  type="number"
-                  step="0.001"
-                  min="0.001"
-                  className="form-input"
-                  value={ingredientQuantity}
-                  onChange={(e) => setIngredientQuantity(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="ingredient-unit" className="form-label">{t('recipes.view.unit')}</label>
-                <select
-                  id="ingredient-unit"
-                  className="form-input form-select"
-                  value={ingredientUnit}
-                  onChange={(e) => setIngredientUnit(e.target.value as 'kg' | 'g')}
-                >
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Notes Field */}
-            <div className="form-group">
-              <label htmlFor="ingredient-notes" className="form-label">{t('recipes.edit.ingredients.notes')}</label>
-              <textarea
-                id="ingredient-notes"
-                className="form-input form-textarea"
-                placeholder={t('recipes.edit.ingredients.notesPlaceholder')}
-                rows={2}
-                value={ingredientNotes}
-                onChange={(e) => setIngredientNotes(e.target.value)}
-              />
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  setShowAddIngredient(false)
-                  setAddIngredientError(null)
-                  setSelectedMaterialId('')
-                  setIngredientQuantity('1')
-                  setIngredientUnit('kg')
-                  setIngredientNotes('')
-                  setIngredientSearch('')
-                }}
-              >
-                {t('common.cancel')}
-              </button>
-              <button type="button" className="btn-primary" onClick={handleAddIngredient}>
-                {t('recipes.edit.ingredients.add')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add Ingredient Dialog */}
+      <AddIngredientDialog
+        isOpen={showAddIngredient}
+        availableMaterials={availableMaterials}
+        existingMaterialIds={existingMaterialIds}
+        onConfirm={handleAddIngredient}
+        onCancel={() => setShowAddIngredient(false)}
+        isLoading={isAddingIngredient}
+      />
 
       {/* Add Packaging Modal */}
       {showAddPackaging && (

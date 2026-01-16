@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within, cleanup } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
@@ -202,9 +202,12 @@ beforeEach(() => {
   mockApi.packaging.getAll.mockResolvedValue(mockPackaging)
 })
 
-// Ensure fake timers are always restored after each test
+// Ensure fake timers are always restored and cleanup happens after each test
 afterEach(() => {
+  cleanup()
   vi.useRealTimers()
+  // Reset body style that may be set by AddIngredientDialog
+  document.body.style.overflow = ''
 })
 
 const renderComponent = (language = 'en') => {
@@ -352,7 +355,7 @@ describe('EditRecipePage', () => {
       fireEvent.change(select, { target: { value: 'mat3' } })
 
       // Set quantity
-      const quantityInput = screen.getByLabelText(/^Quantity$/i) as HTMLInputElement
+      const quantityInput = screen.getByLabelText(/^Quantity/i) as HTMLInputElement
       fireEvent.change(quantityInput, { target: { value: '0.1' } })
 
       // Click add in modal
@@ -460,11 +463,11 @@ describe('EditRecipePage', () => {
       fireEvent.change(select, { target: { value: 'mat3' } })
 
       // Set quantity
-      const quantityInput = screen.getByLabelText(/^Quantity$/i) as HTMLInputElement
+      const quantityInput = screen.getByLabelText(/^Quantity/i) as HTMLInputElement
       fireEvent.change(quantityInput, { target: { value: '0.5' } })
 
       // Set unit to grams
-      const unitSelect = screen.getByLabelText(/^Unit$/i) as HTMLSelectElement
+      const unitSelect = screen.getByLabelText(/^Unit/i) as HTMLSelectElement
       fireEvent.change(unitSelect, { target: { value: 'g' } })
 
       // Add notes
@@ -613,10 +616,10 @@ describe('EditRecipePage', () => {
       const notesInput = screen.getByLabelText(/Notes/i) as HTMLTextAreaElement
       fireEvent.change(notesInput, { target: { value: 'Some notes' } })
 
-      // Cancel modal - there may be multiple Cancel buttons, use the one in the modal
+      // Cancel modal - there may be multiple Cancel buttons, use the one in the dialog
       const cancelButtons = screen.getAllByText('Cancel')
       const modalCancelButton = cancelButtons.find(btn =>
-        btn.closest('.modal')
+        btn.closest('.add-ingredient-dialog') || btn.closest('.modal')
       )
       fireEvent.click(modalCancelButton!)
 
@@ -690,7 +693,7 @@ describe('EditRecipePage', () => {
       fireEvent.change(select, { target: { value: 'pkgmat2' } })
 
       // Set quantity
-      const quantityInput = screen.getByLabelText(/^Quantity$/i) as HTMLInputElement
+      const quantityInput = screen.getByLabelText(/^Quantity/i) as HTMLInputElement
       fireEvent.change(quantityInput, { target: { value: '5' } })
 
       // Click add in modal
