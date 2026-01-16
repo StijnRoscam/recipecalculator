@@ -18,6 +18,8 @@ import {
   archiveRecipe,
   unarchiveRecipe,
   toggleFavoriteRecipe,
+  getSuggestedDuplicateName,
+  checkRecipeNameAvailable,
   duplicateRecipe,
   deleteRecipe,
   addIngredient,
@@ -271,10 +273,36 @@ export function registerIpcHandlers(): void {
     }
   })
 
-  ipcMain.handle('recipes:duplicate', async (_event, id: string) => {
-    console.log('[IPC] recipes:duplicate called with id:', id)
+  ipcMain.handle('recipes:getSuggestedDuplicateName', async (_event, id: string) => {
+    console.log('[IPC] recipes:getSuggestedDuplicateName called with id:', id)
     try {
-      const result = await duplicateRecipe(id)
+      const result = await getSuggestedDuplicateName(id)
+      console.log('[IPC] recipes:getSuggestedDuplicateName succeeded:', result)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:getSuggestedDuplicateName failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:checkNameAvailable', async (_event, name: string) => {
+    console.log('[IPC] recipes:checkNameAvailable called with name:', name)
+    try {
+      const result = await checkRecipeNameAvailable(name)
+      console.log('[IPC] recipes:checkNameAvailable succeeded:', result)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error(`[IPC] recipes:checkNameAvailable failed: ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+  })
+
+  ipcMain.handle('recipes:duplicate', async (_event, id: string, newName: string) => {
+    console.log('[IPC] recipes:duplicate called with id:', id, 'newName:', newName)
+    try {
+      const result = await duplicateRecipe(id, newName)
       console.log('[IPC] recipes:duplicate succeeded:', result.id)
       return result
     } catch (error) {

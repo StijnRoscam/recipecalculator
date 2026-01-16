@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
@@ -124,6 +124,8 @@ describe('ViewRecipePage', () => {
         toggleFavorite: vi.fn(),
         archive: vi.fn(),
         unarchive: vi.fn(),
+        getSuggestedDuplicateName: vi.fn().mockResolvedValue('Premium Beef Burger (Copy)'),
+        checkNameAvailable: vi.fn().mockResolvedValue(true),
         duplicate: vi.fn(),
         delete: vi.fn(),
         getAll: vi.fn(),
@@ -407,9 +409,34 @@ describe('ViewRecipePage', () => {
     })
   })
 
-  it('duplicates recipe when duplicate button is clicked', async () => {
+  it('opens duplicate dialog when duplicate button is clicked', async () => {
     ;(window.api.recipes.get as any).mockResolvedValue(mockRecipe)
-    ;(window.api.recipes.duplicate as any).mockResolvedValue({ ...mockRecipe, id: '2' })
+    ;(window.api.recipes.getSuggestedDuplicateName as any).mockResolvedValue('Premium Beef Burger (Copy)')
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <ViewRecipePage recipeId="1" onBack={vi.fn()} onEdit={vi.fn()} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Premium Beef Burger')).toBeInTheDocument()
+    })
+
+    const duplicateButton = screen.getByText('Duplicate')
+    fireEvent.click(duplicateButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Duplicate Recipe')).toBeInTheDocument()
+      expect(screen.getByLabelText(/New Recipe Name/i)).toBeInTheDocument()
+    })
+  })
+
+  it('calls duplicate API with name when dialog is confirmed', async () => {
+    ;(window.api.recipes.get as any).mockResolvedValue(mockRecipe)
+    ;(window.api.recipes.getSuggestedDuplicateName as any).mockResolvedValue('Premium Beef Burger (Copy)')
+    ;(window.api.recipes.checkNameAvailable as any).mockResolvedValue(true)
+    ;(window.api.recipes.duplicate as any).mockResolvedValue({ ...mockRecipe, id: '2', name: 'My New Recipe' })
     const onBack = vi.fn()
 
     render(
@@ -422,11 +449,28 @@ describe('ViewRecipePage', () => {
       expect(screen.getByText('Premium Beef Burger')).toBeInTheDocument()
     })
 
+    // Click duplicate button to open dialog
     const duplicateButton = screen.getByText('Duplicate')
     fireEvent.click(duplicateButton)
 
+    // Wait for dialog and input
     await waitFor(() => {
-      expect(window.api.recipes.duplicate).toHaveBeenCalledWith('1')
+      expect(screen.getByLabelText(/New Recipe Name/i)).toHaveValue('Premium Beef Burger (Copy)')
+    })
+
+    // Change the name
+    const input = screen.getByLabelText(/New Recipe Name/i)
+    fireEvent.change(input, { target: { value: 'My New Recipe' } })
+
+    // Submit the form - use the submit button inside the dialog (type="submit")
+    const dialog = screen.getByRole('dialog')
+    const submitButton = dialog.querySelector('button[type="submit"]') as HTMLButtonElement
+    await act(async () => {
+      fireEvent.click(submitButton)
+    })
+
+    await waitFor(() => {
+      expect(window.api.recipes.duplicate).toHaveBeenCalledWith('1', 'My New Recipe')
     })
 
     await waitFor(() => {

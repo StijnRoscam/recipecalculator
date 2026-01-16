@@ -178,9 +178,21 @@
     "unarchiveSuccess": "Recipe unarchived successfully",
     "archiveError": "Failed to archive recipe",
     "unarchiveError": "Failed to unarchive recipe",
-    "duplicate": "Duplicate",
-    "duplicateSuccess": "Recipe duplicated successfully",
-    "duplicateError": "Failed to duplicate recipe",
+    "duplicate": {
+      "button": "Duplicate",
+      "title": "Duplicate Recipe",
+      "nameLabel": "New Recipe Name",
+      "namePlaceholder": "Enter a name for the duplicate",
+      "confirm": "Duplicate",
+      "success": "Recipe duplicated successfully",
+      "error": "Failed to duplicate recipe",
+      "errors": {
+        "nameRequired": "Recipe name is required",
+        "nameTooLong": "Recipe name must be 200 characters or less",
+        "duplicateName": "A recipe with this name already exists",
+        "validationFailed": "Failed to validate recipe name"
+      }
+    },
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
     "favoriteAdded": "Added to favorites",

@@ -125,7 +125,9 @@ export interface RecipesApi {
   archive: (id: string) => Promise<Recipe>
   unarchive: (id: string) => Promise<Recipe>
   toggleFavorite: (id: string) => Promise<Recipe>
-  duplicate: (id: string) => Promise<Recipe>
+  getSuggestedDuplicateName: (id: string) => Promise<string>
+  checkNameAvailable: (name: string) => Promise<boolean>
+  duplicate: (id: string, newName: string) => Promise<Recipe>
   delete: (id: string) => Promise<void>
 }
 
