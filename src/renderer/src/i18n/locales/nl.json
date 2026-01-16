@@ -241,6 +241,37 @@
         "duplicateName": "Er bestaat al een recept met deze naam",
         "updateFailed": "Recept bijwerken mislukt",
         "loadFailed": "Recept laden mislukt"
+      },
+      "ingredients": {
+        "add": "Ingrediënt toevoegen",
+        "addTitle": "Ingrediënt toevoegen",
+        "selectMaterial": "Materiaal",
+        "selectPlaceholder": "Selecteer een materiaal...",
+        "dragToReorder": "Slepen om te herschikken",
+        "errors": {
+          "selectMaterial": "Selecteer een materiaal",
+          "invalidQuantity": "Voer een geldige hoeveelheid in",
+          "alreadyExists": "Dit ingrediënt zit al in het recept",
+          "addFailed": "Ingrediënt toevoegen mislukt"
+        }
+      },
+      "packaging": {
+        "add": "Verpakking toevoegen",
+        "addTitle": "Verpakking toevoegen",
+        "selectPackaging": "Verpakkingsmateriaal",
+        "selectPlaceholder": "Selecteer een verpakkingsmateriaal...",
+        "errors": {
+          "selectPackaging": "Selecteer een verpakkingsmateriaal",
+          "invalidQuantity": "Voer een geldige hoeveelheid in",
+          "alreadyExists": "Deze verpakking zit al in het recept",
+          "addFailed": "Verpakking toevoegen mislukt"
+        }
+      },
+      "cancelConfirm": {
+        "title": "Wijzigingen verwijderen?",
+        "message": "U heeft niet-opgeslagen wijzigingen. Weet u zeker dat u deze wilt verwijderen?",
+        "discard": "Verwijderen",
+        "keepEditing": "Blijven bewerken"
       }
     },
     "view": {

@@ -52,6 +52,39 @@ const api = {
       ipcRenderer.invoke('recipes:toggleFavorite', id),
     duplicate: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:duplicate', id),
     delete: (id: string): Promise<void> => ipcRenderer.invoke('recipes:delete', id)
+  },
+  ingredients: {
+    add: (data: {
+      recipeId: string
+      materialId: string
+      quantity: number
+      unit: 'kg' | 'g'
+      notes?: string | null
+    }): Promise<{ id: string; recipeId: string; materialId: string; quantity: number; unit: string; sortOrder: number; notes: string | null }> =>
+      ipcRenderer.invoke('ingredients:add', data),
+    update: (
+      id: string,
+      data: { quantity?: number; unit?: 'kg' | 'g'; notes?: string | null }
+    ): Promise<{ id: string; recipeId: string; materialId: string; quantity: number; unit: string; sortOrder: number; notes: string | null }> =>
+      ipcRenderer.invoke('ingredients:update', id, data),
+    remove: (id: string): Promise<void> => ipcRenderer.invoke('ingredients:remove', id),
+    reorder: (recipeId: string, ingredientIds: string[]): Promise<void> =>
+      ipcRenderer.invoke('ingredients:reorder', recipeId, ingredientIds)
+  },
+  recipePackaging: {
+    add: (data: {
+      recipeId: string
+      packagingMaterialId: string
+      quantity: number
+      notes?: string | null
+    }): Promise<{ id: string; recipeId: string; packagingMaterialId: string; quantity: number; sortOrder: number; notes: string | null }> =>
+      ipcRenderer.invoke('recipePackaging:add', data),
+    update: (
+      id: string,
+      data: { quantity?: number; notes?: string | null }
+    ): Promise<{ id: string; recipeId: string; packagingMaterialId: string; quantity: number; sortOrder: number; notes: string | null }> =>
+      ipcRenderer.invoke('recipePackaging:update', id, data),
+    remove: (id: string): Promise<void> => ipcRenderer.invoke('recipePackaging:remove', id)
   }
 }
 
