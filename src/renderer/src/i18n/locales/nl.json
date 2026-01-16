@@ -259,6 +259,11 @@
         "addTitle": "Ingrediënt toevoegen",
         "selectMaterial": "Materiaal",
         "selectPlaceholder": "Selecteer een materiaal...",
+        "searchPlaceholder": "Materialen zoeken...",
+        "searchNoResults": "Geen materialen gevonden voor uw zoekopdracht",
+        "clearSearch": "Zoekopdracht wissen",
+        "notes": "Notities",
+        "notesPlaceholder": "Voeg notities toe over dit ingrediënt (optioneel)",
         "dragToReorder": "Slepen om te herschikken",
         "errors": {
           "selectMaterial": "Selecteer een materiaal",

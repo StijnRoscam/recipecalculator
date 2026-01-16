@@ -259,6 +259,11 @@
         "addTitle": "Add Ingredient",
         "selectMaterial": "Material",
         "selectPlaceholder": "Select a material...",
+        "searchPlaceholder": "Search materials...",
+        "searchNoResults": "No materials match your search",
+        "clearSearch": "Clear search",
+        "notes": "Notes",
+        "notesPlaceholder": "Add notes about this ingredient (optional)",
         "dragToReorder": "Drag to reorder",
         "errors": {
           "selectMaterial": "Please select a material",

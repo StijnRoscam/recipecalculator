@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from 'i18next'
@@ -202,6 +202,11 @@ beforeEach(() => {
   mockApi.packaging.getAll.mockResolvedValue(mockPackaging)
 })
 
+// Ensure fake timers are always restored after each test
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 const renderComponent = (language = 'en') => {
   const testI18n = createTestI18n(language)
   return render(
@@ -360,7 +365,8 @@ describe('EditRecipePage', () => {
           recipeId: '1',
           materialId: 'mat3',
           quantity: 0.1,
-          unit: 'kg'
+          unit: 'kg',
+          notes: null
         })
       })
     })
@@ -411,6 +417,219 @@ describe('EditRecipePage', () => {
       await waitFor(() => {
         expect(mockApi.ingredients.remove).toHaveBeenCalledWith('ing1')
       })
+    })
+
+    it('can add an ingredient with notes', async () => {
+      const newIngredient = {
+        id: 'ing3',
+        recipeId: '1',
+        materialId: 'mat3',
+        quantity: 0.5,
+        unit: 'g',
+        sortOrder: 2,
+        notes: 'Use fine salt'
+      }
+      mockApi.ingredients.add.mockResolvedValue(newIngredient)
+
+      const updatedRecipe = {
+        ...mockRecipe,
+        ingredients: [
+          ...mockRecipe.ingredients,
+          {
+            ...newIngredient,
+            material: mockMaterials[2]
+          }
+        ]
+      }
+      mockApi.recipes.get.mockResolvedValueOnce(mockRecipe).mockResolvedValueOnce(updatedRecipe)
+
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Material/i)).toBeInTheDocument()
+      })
+
+      // Select the new material (Salt)
+      const select = screen.getByLabelText(/Material/i) as HTMLSelectElement
+      fireEvent.change(select, { target: { value: 'mat3' } })
+
+      // Set quantity
+      const quantityInput = screen.getByLabelText(/^Quantity$/i) as HTMLInputElement
+      fireEvent.change(quantityInput, { target: { value: '0.5' } })
+
+      // Set unit to grams
+      const unitSelect = screen.getByLabelText(/^Unit$/i) as HTMLSelectElement
+      fireEvent.change(unitSelect, { target: { value: 'g' } })
+
+      // Add notes
+      const notesInput = screen.getByLabelText(/Notes/i) as HTMLTextAreaElement
+      fireEvent.change(notesInput, { target: { value: 'Use fine salt' } })
+
+      // Click add in modal
+      const addButtons = screen.getAllByText('Add Ingredient')
+      const modalAddButton = addButtons[addButtons.length - 1]
+      fireEvent.click(modalAddButton)
+
+      await waitFor(() => {
+        expect(mockApi.ingredients.add).toHaveBeenCalledWith({
+          recipeId: '1',
+          materialId: 'mat3',
+          quantity: 0.5,
+          unit: 'g',
+          notes: 'Use fine salt'
+        })
+      })
+    })
+
+    it('filters materials by search term (case-insensitive)', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
+      })
+
+      // Initially Salt should be visible (it's the only non-added material)
+      const materialSelect = screen.getByLabelText(/Material/i) as HTMLSelectElement
+      expect(materialSelect.options.length).toBe(2) // placeholder + Salt
+
+      // Type search term - debounce will apply after 300ms
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.change(searchInput, { target: { value: 'SALT' } })
+
+      // Wait for debounce to apply (300ms + buffer)
+      await waitFor(() => {
+        const updatedSelect = screen.getByLabelText(/Material/i) as HTMLSelectElement
+        // Salt should still be visible (case-insensitive match)
+        expect(updatedSelect.options.length).toBe(2) // placeholder + Salt
+      }, { timeout: 1000 })
+    })
+
+    it('shows no results message when search has no matches', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
+      })
+
+      // Type a search term that won't match anything
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.change(searchInput, { target: { value: 'nonexistent' } })
+
+      // Wait for debounce and no results message
+      await waitFor(() => {
+        expect(screen.getByText('No materials match your search')).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+
+    it('clears search when clear button is clicked', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
+      })
+
+      // Type a search term
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.change(searchInput, { target: { value: 'test' } })
+
+      // Clear button should appear immediately (no debounce for button visibility)
+      await waitFor(() => {
+        expect(screen.getByTitle('Clear search')).toBeInTheDocument()
+      })
+
+      // Click clear button
+      fireEvent.click(screen.getByTitle('Clear search'))
+
+      // Search should be cleared
+      expect((searchInput as HTMLInputElement).value).toBe('')
+    })
+
+    it('clears search when Escape key is pressed on search input', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
+      })
+
+      // Type a search term
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.change(searchInput, { target: { value: 'test' } })
+
+      // Press Escape
+      fireEvent.keyDown(searchInput, { key: 'Escape' })
+
+      // Search should be cleared
+      expect((searchInput as HTMLInputElement).value).toBe('')
+    })
+
+    it('resets search and notes when modal is closed', async () => {
+      renderComponent()
+
+      await waitFor(() => {
+        expect(screen.getByText('Add Ingredient')).toBeInTheDocument()
+      })
+
+      // Open modal
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search materials...')).toBeInTheDocument()
+      })
+
+      // Type in search and notes
+      const searchInput = screen.getByPlaceholderText('Search materials...')
+      fireEvent.change(searchInput, { target: { value: 'test' } })
+
+      const notesInput = screen.getByLabelText(/Notes/i) as HTMLTextAreaElement
+      fireEvent.change(notesInput, { target: { value: 'Some notes' } })
+
+      // Cancel modal - there may be multiple Cancel buttons, use the one in the modal
+      const cancelButtons = screen.getAllByText('Cancel')
+      const modalCancelButton = cancelButtons.find(btn =>
+        btn.closest('.modal')
+      )
+      fireEvent.click(modalCancelButton!)
+
+      // Re-open modal
+      fireEvent.click(screen.getByText('Add Ingredient'))
+
+      await waitFor(() => {
+        const newSearchInput = screen.getByPlaceholderText('Search materials...')
+        expect((newSearchInput as HTMLInputElement).value).toBe('')
+      })
+
+      const newNotesInput = screen.getByLabelText(/Notes/i) as HTMLTextAreaElement
+      expect(newNotesInput.value).toBe('')
     })
   })
 
