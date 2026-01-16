@@ -438,3 +438,41 @@
   gap: 1rem;
   margin-top: 1.5rem;
 }
+
+/* Search input wrapper with clear button */
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper .form-input {
+  padding-right: 2.5rem;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.search-clear-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.search-no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin: 0;
+}
