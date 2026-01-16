@@ -310,6 +310,7 @@
       "quantity": "Hoeveelheid",
       "unit": "Eenheid",
       "cost": "Kosten",
+      "notes": "Notities",
       "percentOfTotal": "% van Totaal",
       "unitType": "Eenheidstype",
       "totalIngredientsCost": "Totale Ingrediëntenkosten",

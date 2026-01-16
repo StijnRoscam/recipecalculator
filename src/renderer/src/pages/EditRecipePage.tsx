@@ -85,6 +85,8 @@ export function EditRecipePage({
   const [editingIngredientId, setEditingIngredientId] = useState<string | null>(null)
   const [editIngredientQuantity, setEditIngredientQuantity] = useState<string>('')
   const [editIngredientUnit, setEditIngredientUnit] = useState<'kg' | 'g'>('kg')
+  const [editIngredientNotes, setEditIngredientNotes] = useState<string>('')
+  const [editIngredientError, setEditIngredientError] = useState<string | null>(null)
 
   // Edit packaging state
   const [editingPackagingId, setEditingPackagingId] = useState<string | null>(null)
@@ -264,16 +266,24 @@ export function EditRecipePage({
     setEditingIngredientId(ingredient.id)
     setEditIngredientQuantity(ingredient.quantity.toString())
     setEditIngredientUnit(ingredient.unit as 'kg' | 'g')
+    setEditIngredientNotes(ingredient.notes || '')
+    setEditIngredientError(null)
   }
 
   const handleSaveIngredient = async (ingredientId: string): Promise<void> => {
     const quantity = parseFloat(editIngredientQuantity)
-    if (isNaN(quantity) || quantity <= 0) return
+    if (isNaN(quantity) || quantity <= 0) {
+      setEditIngredientError(t('recipes.edit.ingredients.errors.invalidQuantity'))
+      return
+    }
+
+    setEditIngredientError(null)
 
     try {
       await window.api.ingredients.update(ingredientId, {
         quantity,
-        unit: editIngredientUnit
+        unit: editIngredientUnit,
+        notes: editIngredientNotes.trim() || undefined
       })
 
       const updatedRecipe = await window.api.recipes.get(recipeId)
@@ -290,6 +300,7 @@ export function EditRecipePage({
 
   const handleCancelEditIngredient = (): void => {
     setEditingIngredientId(null)
+    setEditIngredientError(null)
   }
 
   const handleRemoveIngredient = async (ingredientId: string): Promise<void> => {
@@ -690,6 +701,7 @@ export function EditRecipePage({
                   <th>{t('recipes.view.materialName')}</th>
                   <th className="text-right">{t('recipes.view.quantity')}</th>
                   <th>{t('recipes.view.unit')}</th>
+                  <th>{t('recipes.view.notes')}</th>
                   <th className="text-right">{t('recipes.view.cost')}</th>
                   <th className="actions-col"></th>
                 </tr>
@@ -720,15 +732,23 @@ export function EditRecipePage({
                       <td>{ingredient.material.name}</td>
                       <td className="text-right">
                         {isEditing ? (
-                          <input
-                            type="number"
-                            step="0.001"
-                            min="0.001"
-                            className="inline-input"
-                            value={editIngredientQuantity}
-                            onChange={(e) => setEditIngredientQuantity(e.target.value)}
-                            autoFocus
-                          />
+                          <div className="inline-edit-cell">
+                            <input
+                              type="number"
+                              step="0.001"
+                              min="0.001"
+                              className={`inline-input ${editIngredientError ? 'inline-input-error' : ''}`}
+                              value={editIngredientQuantity}
+                              onChange={(e) => {
+                                setEditIngredientQuantity(e.target.value)
+                                setEditIngredientError(null)
+                              }}
+                              autoFocus
+                            />
+                            {editIngredientError && (
+                              <span className="inline-error">{editIngredientError}</span>
+                            )}
+                          </div>
                         ) : (
                           ingredient.quantity.toFixed(3)
                         )}
@@ -745,6 +765,19 @@ export function EditRecipePage({
                           </select>
                         ) : (
                           ingredient.unit
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            className="inline-input inline-input-notes"
+                            value={editIngredientNotes}
+                            onChange={(e) => setEditIngredientNotes(e.target.value)}
+                            placeholder={t('recipes.edit.ingredients.notesPlaceholder')}
+                          />
+                        ) : (
+                          ingredient.notes || '-'
                         )}
                       </td>
                       <td className="text-right">{formatPrice(lineCost)}</td>
@@ -767,7 +800,7 @@ export function EditRecipePage({
               </tbody>
               <tfoot>
                 <tr className="total-row">
-                  <td colSpan={4}>{t('recipes.view.totalIngredientsCost')}</td>
+                  <td colSpan={5}>{t('recipes.view.totalIngredientsCost')}</td>
                   <td className="text-right">{formatPrice(ingredientsCost)}</td>
                   <td></td>
                 </tr>
