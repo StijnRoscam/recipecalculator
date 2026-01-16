@@ -197,6 +197,51 @@
       "confirmMessage": "Weet u zeker dat u \"{{name}}\" permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
       "success": "Recept succesvol verwijderd",
       "error": "Recept verwijderen mislukt"
+    },
+    "create": {
+      "title": "Nieuw Recept Aanmaken",
+      "fields": {
+        "name": "Receptnaam",
+        "namePlaceholder": "Voer receptnaam in",
+        "description": "Omschrijving",
+        "descriptionPlaceholder": "Voer recept omschrijving in (optioneel)",
+        "yieldQuantity": "Opbrengst Hoeveelheid",
+        "yieldQuantityPlaceholder": "1",
+        "yieldUnit": "Opbrengst Eenheid",
+        "prepTimeMinutes": "Bereidingstijd (minuten)",
+        "prepTimeMinutesPlaceholder": "Voer bereidingstijd in (optioneel)",
+        "profitMargin": "Winstmarge (%)",
+        "profitMarginPlaceholder": "25",
+        "wastePercentage": "Afval Percentage (%)",
+        "wastePercentagePlaceholder": "0",
+        "vatPercentage": "BTW Percentage (%)",
+        "vatPercentagePlaceholder": "21",
+        "instructions": "Instructies",
+        "instructionsPlaceholder": "Voer bereidingsinstructies in (optioneel)"
+      },
+      "yieldUnits": {
+        "portion": "Portie",
+        "piece": "Stuk",
+        "kg": "Kilogram (kg)",
+        "g": "Gram (g)",
+        "l": "Liter (l)",
+        "ml": "Milliliter (ml)"
+      },
+      "success": "Recept succesvol aangemaakt",
+      "errors": {
+        "duplicateName": "Er bestaat al een recept met deze naam",
+        "createFailed": "Recept aanmaken mislukt"
+      }
+    },
+    "edit": {
+      "title": "Recept Bewerken",
+      "success": "Recept succesvol bijgewerkt",
+      "errors": {
+        "notFound": "Recept niet gevonden",
+        "duplicateName": "Er bestaat al een recept met deze naam",
+        "updateFailed": "Recept bijwerken mislukt",
+        "loadFailed": "Recept laden mislukt"
+      }
     }
   }
 }
