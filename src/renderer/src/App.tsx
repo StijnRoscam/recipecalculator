@@ -10,6 +10,7 @@ import { CreatePackagingPage } from './pages/CreatePackagingPage'
 import { EditPackagingPage } from './pages/EditPackagingPage'
 import { RecipesPage } from './pages/RecipesPage'
 import { CreateRecipePage } from './pages/CreateRecipePage'
+import { ViewRecipePage } from './pages/ViewRecipePage'
 
 function App(): JSX.Element {
   const [activePage, setActivePage] = useState('recipes')
@@ -163,6 +164,13 @@ function App(): JSX.Element {
           <CreateRecipePage
             onCancel={handleRecipeCancel}
             onSuccess={handleRecipeSuccess}
+          />
+        )}
+        {activePage === 'recipes/view' && viewRecipeId && (
+          <ViewRecipePage
+            recipeId={viewRecipeId}
+            onBack={handleRecipeCancel}
+            onEdit={() => handleEditRecipe(viewRecipeId)}
           />
         )}
       </main>
