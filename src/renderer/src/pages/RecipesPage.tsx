@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { RecipeWithDetails } from '../../../shared/types'
 import { useDebounce } from '../hooks/useDebounce'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { DuplicateRecipeDialog } from '../components/DuplicateRecipeDialog'
 import './RecipesPage.css'
 
 interface RecipesPageProps {
@@ -33,6 +34,9 @@ export function RecipesPage({
   const [recipeToDelete, setRecipeToDelete] = useState<RecipeWithDetails | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+  const [recipeToDuplicate, setRecipeToDuplicate] = useState<string | null>(null)
+  const [isDuplicating, setIsDuplicating] = useState(false)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   const fetchRecipes = async (): Promise<void> => {
@@ -152,18 +156,36 @@ export function RecipesPage({
     }
   }
 
-  const handleDuplicate = async (id: string): Promise<void> => {
-    setActionInProgress(id)
+  const handleDuplicateClick = (id: string): void => {
+    setRecipeToDuplicate(id)
+    setDuplicateDialogOpen(true)
+  }
+
+  const handleDuplicateCancel = (): void => {
+    setDuplicateDialogOpen(false)
+    setRecipeToDuplicate(null)
+  }
+
+  const handleDuplicateConfirm = async (newName: string): Promise<void> => {
+    if (!recipeToDuplicate) return
+
+    setIsDuplicating(true)
     setError(null)
     try {
-      await window.api.recipes.duplicate(id)
+      const newRecipe = await window.api.recipes.duplicate(recipeToDuplicate, newName)
       await fetchRecipes()
-      showTemporarySuccess(t('recipes.duplicateSuccess'))
+      showTemporarySuccess(t('recipes.duplicate.success'))
+      setDuplicateDialogOpen(false)
+      setRecipeToDuplicate(null)
+      // Navigate to the new recipe
+      onViewRecipe?.(newRecipe.id)
     } catch (err) {
       console.error('Failed to duplicate recipe:', err)
-      setError(t('recipes.duplicateError'))
+      setError(t('recipes.duplicate.error'))
+      setDuplicateDialogOpen(false)
+      setRecipeToDuplicate(null)
     } finally {
-      setActionInProgress(null)
+      setIsDuplicating(false)
     }
   }
 
@@ -404,9 +426,9 @@ export function RecipesPage({
                   </button>
                   <button
                     className="btn-icon"
-                    title={t('recipes.duplicate')}
-                    aria-label={t('recipes.duplicate')}
-                    onClick={() => handleDuplicate(recipe.id)}
+                    title={t('recipes.duplicate.button')}
+                    aria-label={t('recipes.duplicate.button')}
+                    onClick={() => handleDuplicateClick(recipe.id)}
                     disabled={actionInProgress === recipe.id}
                   >
                     <svg
@@ -497,6 +519,14 @@ export function RecipesPage({
         onCancel={handleDeleteCancel}
         isLoading={isDeleting}
         variant="danger"
+      />
+
+      <DuplicateRecipeDialog
+        isOpen={duplicateDialogOpen}
+        recipeId={recipeToDuplicate || ''}
+        onConfirm={handleDuplicateConfirm}
+        onCancel={handleDuplicateCancel}
+        isLoading={isDuplicating}
       />
     </div>
   )

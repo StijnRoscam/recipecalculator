@@ -178,9 +178,21 @@
     "unarchiveSuccess": "Recept succesvol hersteld",
     "archiveError": "Recept archiveren mislukt",
     "unarchiveError": "Recept herstellen mislukt",
-    "duplicate": "Dupliceren",
-    "duplicateSuccess": "Recept succesvol gedupliceerd",
-    "duplicateError": "Recept dupliceren mislukt",
+    "duplicate": {
+      "button": "Dupliceren",
+      "title": "Recept Dupliceren",
+      "nameLabel": "Nieuwe Receptnaam",
+      "namePlaceholder": "Voer een naam in voor het duplicaat",
+      "confirm": "Dupliceren",
+      "success": "Recept succesvol gedupliceerd",
+      "error": "Recept dupliceren mislukt",
+      "errors": {
+        "nameRequired": "Receptnaam is verplicht",
+        "nameTooLong": "Receptnaam mag maximaal 200 tekens bevatten",
+        "duplicateName": "Er bestaat al een recept met deze naam",
+        "validationFailed": "Receptnaam valideren mislukt"
+      }
+    },
     "addFavorite": "Toevoegen aan favorieten",
     "removeFavorite": "Verwijderen uit favorieten",
     "favoriteAdded": "Toegevoegd aan favorieten",

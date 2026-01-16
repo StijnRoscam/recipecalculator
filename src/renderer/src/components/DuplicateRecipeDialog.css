@@ -1,0 +1,236 @@
+.duplicate-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 14, 23, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: duplicateFadeIn 0.15s ease-out;
+}
+
+@keyframes duplicateFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.duplicate-dialog {
+  background-color: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  animation: duplicateSlideIn 0.15s ease-out;
+}
+
+@keyframes duplicateSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.duplicate-dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #eaeaea;
+  margin: 0 0 1.25rem 0;
+}
+
+.duplicate-dialog-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  color: #94a3b8;
+  font-size: 0.9375rem;
+}
+
+.duplicate-dialog-content {
+  margin-bottom: 1.5rem;
+}
+
+.duplicate-dialog-label {
+  display: block;
+  color: #eaeaea;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.duplicate-dialog-label .required {
+  color: #e94560;
+}
+
+.duplicate-dialog-input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #0f3460;
+  border: 1px solid #1a4a7a;
+  border-radius: 6px;
+  color: #eaeaea;
+  font-size: 0.9375rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.duplicate-dialog-input::placeholder {
+  color: #64748b;
+}
+
+.duplicate-dialog-input:focus {
+  outline: none;
+  border-color: #e94560;
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+}
+
+.duplicate-dialog-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.duplicate-dialog-input.input-error {
+  border-color: #ef4444;
+}
+
+.duplicate-dialog-input.input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.duplicate-dialog-error {
+  display: block;
+  color: #ef4444;
+  font-size: 0.8125rem;
+  margin-top: 0.375rem;
+}
+
+.duplicate-dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.duplicate-dialog-actions .btn-secondary {
+  background-color: transparent;
+  color: #eaeaea;
+  border: 1px solid #0f3460;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.duplicate-dialog-actions .btn-secondary:hover:not(:disabled) {
+  background-color: rgba(233, 69, 96, 0.1);
+  border-color: #e94560;
+}
+
+.duplicate-dialog-actions .btn-secondary:focus {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
+}
+
+.duplicate-dialog-actions .btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.duplicate-dialog-actions .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #e94560;
+  color: #ffffff;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.duplicate-dialog-actions .btn-primary:hover:not(:disabled) {
+  background-color: #d63850;
+}
+
+.duplicate-dialog-actions .btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.duplicate-dialog-actions .btn-primary:disabled {
+  background-color: #4a5568;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.duplicate-dialog-actions .btn-primary:focus {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
+}
+
+/* Loading spinners */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #0f3460;
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .duplicate-dialog {
+    padding: 1.25rem;
+  }
+
+  .duplicate-dialog-title {
+    font-size: 1.125rem;
+  }
+
+  .duplicate-dialog-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .duplicate-dialog-actions .btn-secondary,
+  .duplicate-dialog-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}

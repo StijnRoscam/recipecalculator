@@ -105,6 +105,8 @@ const mockGetAll = vi.fn()
 const mockToggleFavorite = vi.fn()
 const mockArchive = vi.fn()
 const mockUnarchive = vi.fn()
+const mockGetSuggestedDuplicateName = vi.fn()
+const mockCheckNameAvailable = vi.fn()
 const mockDuplicate = vi.fn()
 const mockDelete = vi.fn()
 
@@ -114,8 +116,14 @@ beforeEach(() => {
   mockToggleFavorite.mockReset()
   mockArchive.mockReset()
   mockUnarchive.mockReset()
+  mockGetSuggestedDuplicateName.mockReset()
+  mockCheckNameAvailable.mockReset()
   mockDuplicate.mockReset()
   mockDelete.mockReset()
+
+  // Default implementations for duplicate dialog
+  mockGetSuggestedDuplicateName.mockResolvedValue('Test Recipe (Copy)')
+  mockCheckNameAvailable.mockResolvedValue(true)
 
   // Setup window.api mock
   Object.defineProperty(window, 'api', {
@@ -125,6 +133,8 @@ beforeEach(() => {
         toggleFavorite: mockToggleFavorite,
         archive: mockArchive,
         unarchive: mockUnarchive,
+        getSuggestedDuplicateName: mockGetSuggestedDuplicateName,
+        checkNameAvailable: mockCheckNameAvailable,
         duplicate: mockDuplicate,
         delete: mockDelete
       }
@@ -840,69 +850,112 @@ describe('RecipesPage archive functionality', () => {
 describe('RecipesPage duplicate functionality', () => {
   let testI18n: typeof i18n
   const mockOnCreateRecipe = vi.fn()
+  const mockOnViewRecipe = vi.fn()
 
   beforeEach(() => {
     testI18n = createTestI18n('en')
     mockOnCreateRecipe.mockReset()
+    mockOnViewRecipe.mockReset()
   })
 
-  it('calls duplicate API when duplicate button is clicked', async () => {
-    vi.useFakeTimers()
+  it('opens duplicate dialog when duplicate button is clicked', async () => {
     const activeRecipes = mockRecipes.filter((r) => !r.isArchived)
     mockGetAll.mockResolvedValue(activeRecipes)
-    mockDuplicate.mockResolvedValue({ ...activeRecipes[0], id: '4', name: 'Beef Stew (Copy)' })
+    mockGetSuggestedDuplicateName.mockResolvedValue('Beef Stew (Copy)')
 
-    await act(async () => {
-      render(
-        <I18nextProvider i18n={testI18n}>
-          <RecipesPage onCreateRecipe={mockOnCreateRecipe} />
-        </I18nextProvider>
-      )
-      await vi.runAllTimersAsync()
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <RecipesPage onCreateRecipe={mockOnCreateRecipe} onViewRecipe={mockOnViewRecipe} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef Stew')).toBeInTheDocument()
     })
-
-    expect(screen.getByText('Beef Stew')).toBeInTheDocument()
 
     const duplicateButtons = screen.getAllByTitle('Duplicate')
+    fireEvent.click(duplicateButtons[0])
 
-    await act(async () => {
-      fireEvent.click(duplicateButtons[0])
-      await vi.advanceTimersByTimeAsync(100)
+    await waitFor(() => {
+      expect(screen.getByText('Duplicate Recipe')).toBeInTheDocument()
+      expect(screen.getByLabelText(/New Recipe Name/i)).toBeInTheDocument()
     })
-
-    expect(mockDuplicate).toHaveBeenCalledWith('1')
-
-    vi.useRealTimers()
   })
 
-  it('shows success message after duplicating', async () => {
-    vi.useFakeTimers()
+  it('calls duplicate API with custom name when dialog is confirmed', async () => {
     const activeRecipes = mockRecipes.filter((r) => !r.isArchived)
-    const duplicatedRecipe = { ...activeRecipes[0], id: '4', name: 'Beef Stew (Copy)' }
+    const duplicatedRecipe = { ...activeRecipes[0], id: '4', name: 'My Custom Name' }
     mockGetAll
       .mockResolvedValueOnce(activeRecipes)
       .mockResolvedValueOnce([...activeRecipes, duplicatedRecipe])
+    mockGetSuggestedDuplicateName.mockResolvedValue('Beef Stew (Copy)')
+    mockCheckNameAvailable.mockResolvedValue(true)
     mockDuplicate.mockResolvedValue(duplicatedRecipe)
 
-    await act(async () => {
-      render(
-        <I18nextProvider i18n={testI18n}>
-          <RecipesPage onCreateRecipe={mockOnCreateRecipe} />
-        </I18nextProvider>
-      )
-      await vi.runAllTimersAsync()
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <RecipesPage onCreateRecipe={mockOnCreateRecipe} onViewRecipe={mockOnViewRecipe} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef Stew')).toBeInTheDocument()
     })
 
+    // Click duplicate button to open dialog
     const duplicateButtons = screen.getAllByTitle('Duplicate')
+    fireEvent.click(duplicateButtons[0])
 
-    await act(async () => {
-      fireEvent.click(duplicateButtons[0])
-      await vi.advanceTimersByTimeAsync(100)
+    // Wait for dialog to appear with suggested name
+    await waitFor(() => {
+      expect(screen.getByLabelText(/New Recipe Name/i)).toHaveValue('Beef Stew (Copy)')
     })
 
-    expect(screen.getByText('Recipe duplicated successfully')).toBeInTheDocument()
+    // Change the name
+    const input = screen.getByLabelText(/New Recipe Name/i)
+    fireEvent.change(input, { target: { value: 'My Custom Name' } })
 
-    vi.useRealTimers()
+    // Click confirm button - use the submit button inside the dialog (type="submit")
+    const dialog = screen.getByRole('dialog')
+    const submitButton = dialog.querySelector('button[type="submit"]') as HTMLButtonElement
+    await act(async () => {
+      fireEvent.click(submitButton)
+    })
+
+    await waitFor(() => {
+      expect(mockDuplicate).toHaveBeenCalledWith('1', 'My Custom Name')
+    })
+  })
+
+  it('closes dialog when cancel is clicked', async () => {
+    const activeRecipes = mockRecipes.filter((r) => !r.isArchived)
+    mockGetAll.mockResolvedValue(activeRecipes)
+    mockGetSuggestedDuplicateName.mockResolvedValue('Beef Stew (Copy)')
+
+    render(
+      <I18nextProvider i18n={testI18n}>
+        <RecipesPage onCreateRecipe={mockOnCreateRecipe} />
+      </I18nextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Beef Stew')).toBeInTheDocument()
+    })
+
+    // Open dialog
+    const duplicateButtons = screen.getAllByTitle('Duplicate')
+    fireEvent.click(duplicateButtons[0])
+
+    await waitFor(() => {
+      expect(screen.getByText('Duplicate Recipe')).toBeInTheDocument()
+    })
+
+    // Click cancel
+    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Duplicate Recipe')).not.toBeInTheDocument()
+    })
   })
 })
 
@@ -1076,7 +1129,7 @@ describe('RecipesPage translations', () => {
     expect(testI18n.t('recipes.archived')).toBe('Archived')
     expect(testI18n.t('recipes.archive')).toBe('Archive')
     expect(testI18n.t('recipes.unarchive')).toBe('Unarchive')
-    expect(testI18n.t('recipes.duplicate')).toBe('Duplicate')
+    expect(testI18n.t('recipes.duplicate.button')).toBe('Duplicate')
     expect(testI18n.t('recipes.addFavorite')).toBe('Add to favorites')
     expect(testI18n.t('recipes.removeFavorite')).toBe('Remove from favorites')
     expect(testI18n.t('recipes.totalCost')).toBe('Total Cost')
@@ -1085,7 +1138,7 @@ describe('RecipesPage translations', () => {
     expect(testI18n.t('recipes.search.clear')).toBe('Clear search')
     expect(testI18n.t('recipes.delete.confirmTitle')).toBe('Delete Recipe?')
     expect(testI18n.t('recipes.archiveSuccess')).toBe('Recipe archived successfully')
-    expect(testI18n.t('recipes.duplicateSuccess')).toBe('Recipe duplicated successfully')
+    expect(testI18n.t('recipes.duplicate.success')).toBe('Recipe duplicated successfully')
     expect(testI18n.t('recipes.delete.success')).toBe('Recipe deleted successfully')
   })
 
@@ -1104,7 +1157,7 @@ describe('RecipesPage translations', () => {
     expect(testI18n.t('recipes.archived')).toBe('Gearchiveerd')
     expect(testI18n.t('recipes.archive')).toBe('Archiveren')
     expect(testI18n.t('recipes.unarchive')).toBe('Herstellen')
-    expect(testI18n.t('recipes.duplicate')).toBe('Dupliceren')
+    expect(testI18n.t('recipes.duplicate.button')).toBe('Dupliceren')
     expect(testI18n.t('recipes.addFavorite')).toBe('Toevoegen aan favorieten')
     expect(testI18n.t('recipes.removeFavorite')).toBe('Verwijderen uit favorieten')
     expect(testI18n.t('recipes.totalCost')).toBe('Totale kosten')
@@ -1115,7 +1168,7 @@ describe('RecipesPage translations', () => {
     expect(testI18n.t('recipes.search.clear')).toBe('Zoekopdracht wissen')
     expect(testI18n.t('recipes.delete.confirmTitle')).toBe('Recept verwijderen?')
     expect(testI18n.t('recipes.archiveSuccess')).toBe('Recept succesvol gearchiveerd')
-    expect(testI18n.t('recipes.duplicateSuccess')).toBe('Recept succesvol gedupliceerd')
+    expect(testI18n.t('recipes.duplicate.success')).toBe('Recept succesvol gedupliceerd')
     expect(testI18n.t('recipes.delete.success')).toBe('Recept succesvol verwijderd')
   })
 })

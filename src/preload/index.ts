@@ -50,7 +50,12 @@ const api = {
     unarchive: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:unarchive', id),
     toggleFavorite: (id: string): Promise<Recipe> =>
       ipcRenderer.invoke('recipes:toggleFavorite', id),
-    duplicate: (id: string): Promise<Recipe> => ipcRenderer.invoke('recipes:duplicate', id),
+    getSuggestedDuplicateName: (id: string): Promise<string> =>
+      ipcRenderer.invoke('recipes:getSuggestedDuplicateName', id),
+    checkNameAvailable: (name: string): Promise<boolean> =>
+      ipcRenderer.invoke('recipes:checkNameAvailable', name),
+    duplicate: (id: string, newName: string): Promise<Recipe> =>
+      ipcRenderer.invoke('recipes:duplicate', id, newName),
     delete: (id: string): Promise<void> => ipcRenderer.invoke('recipes:delete', id)
   },
   ingredients: {

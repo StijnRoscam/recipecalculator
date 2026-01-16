@@ -324,17 +324,15 @@ export async function toggleFavoriteRecipe(id: string): Promise<Recipe> {
 }
 
 /**
- * Duplicate a recipe with all its ingredients and packaging.
+ * Get the suggested name for a duplicated recipe.
+ * Returns the original name with " (Copy)" suffix, incrementing if needed.
  */
-export async function duplicateRecipe(id: string): Promise<Recipe> {
+export async function getSuggestedDuplicateName(id: string): Promise<string> {
   const prisma = getPrisma()
 
   const recipe = await prisma.recipe.findUnique({
     where: { id },
-    include: {
-      ingredients: true,
-      recipePackaging: true
-    }
+    select: { name: true }
   })
 
   if (!recipe) {
@@ -356,10 +354,62 @@ export async function duplicateRecipe(id: string): Promise<Recipe> {
     copyName = `${recipe.name} (Copy ${counter})`
   }
 
+  return copyName
+}
+
+/**
+ * Check if a recipe name is available for use.
+ */
+export async function checkRecipeNameAvailable(name: string): Promise<boolean> {
+  const prisma = getPrisma()
+  const trimmedName = name.trim()
+
+  const existingRecipes = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT id FROM recipes WHERE LOWER(name) = LOWER(${trimmedName}) LIMIT 1
+  `
+
+  return existingRecipes.length === 0
+}
+
+/**
+ * Duplicate a recipe with all its ingredients and packaging.
+ * @param id - The ID of the recipe to duplicate
+ * @param newName - The name for the duplicated recipe (must be unique)
+ */
+export async function duplicateRecipe(id: string, newName: string): Promise<Recipe> {
+  const prisma = getPrisma()
+
+  const recipe = await prisma.recipe.findUnique({
+    where: { id },
+    include: {
+      ingredients: true,
+      recipePackaging: true
+    }
+  })
+
+  if (!recipe) {
+    throw new Error('NOT_FOUND')
+  }
+
+  // Validate the new name
+  const trimmedName = newName.trim()
+  if (!trimmedName) {
+    throw new Error('NAME_REQUIRED')
+  }
+
+  // Check for duplicate name (case-insensitive)
+  const existingRecipes = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT id FROM recipes WHERE LOWER(name) = LOWER(${trimmedName}) LIMIT 1
+  `
+
+  if (existingRecipes.length > 0) {
+    throw new Error('DUPLICATE_NAME')
+  }
+
   // Create the new recipe with ingredients and packaging
   return prisma.recipe.create({
     data: {
-      name: copyName,
+      name: trimmedName,
       description: recipe.description,
       categoryId: recipe.categoryId,
       yieldQuantity: recipe.yieldQuantity,

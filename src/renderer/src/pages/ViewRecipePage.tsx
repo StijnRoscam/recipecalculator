@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { DuplicateRecipeDialog } from '../components/DuplicateRecipeDialog'
 import type { RecipeWithFullDetails } from '../../../shared/types'
 import './ViewRecipePage.css'
 
@@ -24,6 +25,8 @@ export function ViewRecipePage({ recipeId, onBack, onEdit }: ViewRecipePageProps
   const [actionInProgress, setActionInProgress] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+  const [isDuplicating, setIsDuplicating] = useState(false)
 
   // Load recipe data on mount
   useEffect(() => {
@@ -181,15 +184,25 @@ export function ViewRecipePage({ recipeId, onBack, onEdit }: ViewRecipePageProps
     }
   }
 
-  const handleDuplicate = async (): Promise<void> => {
-    setActionInProgress(true)
+  const handleDuplicateClick = (): void => {
+    setDuplicateDialogOpen(true)
+  }
+
+  const handleDuplicateCancel = (): void => {
+    setDuplicateDialogOpen(false)
+  }
+
+  const handleDuplicateConfirm = async (newName: string): Promise<void> => {
+    setIsDuplicating(true)
     try {
-      await window.api.recipes.duplicate(recipeId)
-      onBack()
+      await window.api.recipes.duplicate(recipeId, newName)
+      setDuplicateDialogOpen(false)
+      onBack() // Navigate back to see the new recipe in the list
     } catch (error) {
       console.error('Failed to duplicate recipe:', error)
+      setDuplicateDialogOpen(false)
     } finally {
-      setActionInProgress(false)
+      setIsDuplicating(false)
     }
   }
 
@@ -365,10 +378,10 @@ export function ViewRecipePage({ recipeId, onBack, onEdit }: ViewRecipePageProps
           </button>
           <button
             className="btn-secondary"
-            onClick={handleDuplicate}
+            onClick={handleDuplicateClick}
             disabled={actionInProgress}
           >
-            {t('recipes.duplicate')}
+            {t('recipes.duplicate.button')}
           </button>
           <button
             className="btn-secondary"
@@ -616,6 +629,14 @@ export function ViewRecipePage({ recipeId, onBack, onEdit }: ViewRecipePageProps
         onCancel={handleDeleteCancel}
         isLoading={isDeleting}
         variant="danger"
+      />
+
+      <DuplicateRecipeDialog
+        isOpen={duplicateDialogOpen}
+        recipeId={recipeId}
+        onConfirm={handleDuplicateConfirm}
+        onCancel={handleDuplicateCancel}
+        isLoading={isDuplicating}
       />
     </div>
   )
