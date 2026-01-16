@@ -197,6 +197,51 @@
       "confirmMessage": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
       "success": "Recipe deleted successfully",
       "error": "Failed to delete recipe"
+    },
+    "create": {
+      "title": "Create New Recipe",
+      "fields": {
+        "name": "Recipe Name",
+        "namePlaceholder": "Enter recipe name",
+        "description": "Description",
+        "descriptionPlaceholder": "Enter recipe description (optional)",
+        "yieldQuantity": "Yield Quantity",
+        "yieldQuantityPlaceholder": "1",
+        "yieldUnit": "Yield Unit",
+        "prepTimeMinutes": "Prep Time (minutes)",
+        "prepTimeMinutesPlaceholder": "Enter prep time (optional)",
+        "profitMargin": "Profit Margin (%)",
+        "profitMarginPlaceholder": "25",
+        "wastePercentage": "Waste Percentage (%)",
+        "wastePercentagePlaceholder": "0",
+        "vatPercentage": "VAT Percentage (%)",
+        "vatPercentagePlaceholder": "21",
+        "instructions": "Instructions",
+        "instructionsPlaceholder": "Enter preparation instructions (optional)"
+      },
+      "yieldUnits": {
+        "portion": "Portion",
+        "piece": "Piece",
+        "kg": "Kilogram (kg)",
+        "g": "Gram (g)",
+        "l": "Liter (l)",
+        "ml": "Milliliter (ml)"
+      },
+      "success": "Recipe created successfully",
+      "errors": {
+        "duplicateName": "A recipe with this name already exists",
+        "createFailed": "Failed to create recipe"
+      }
+    },
+    "edit": {
+      "title": "Edit Recipe",
+      "success": "Recipe updated successfully",
+      "errors": {
+        "notFound": "Recipe not found",
+        "duplicateName": "A recipe with this name already exists",
+        "updateFailed": "Failed to update recipe",
+        "loadFailed": "Failed to load recipe"
+      }
     }
   }
 }
