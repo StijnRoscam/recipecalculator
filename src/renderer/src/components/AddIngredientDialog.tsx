@@ -70,12 +70,8 @@ export function AddIngredientDialog({
     })
   }, [availableMaterials, existingMaterialIds, debouncedSearch])
 
-  // Focus search input when dialog opens
-  useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isOpen])
+  // Note: We intentionally do NOT auto-focus the search input when dialog opens
+  // so that the dropdown only appears when the user explicitly clicks on it
 
   // Handle Escape key
   useEffect(() => {
